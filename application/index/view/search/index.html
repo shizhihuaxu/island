@@ -1,0 +1,100 @@
+{extend name="base"/} {block name="title"}搜索结果列表页{/block} {block name="content"}
+<div class='container home-content search-list'>
+	<div>共&emsp;<span>{$total}</span>&emsp;条搜索结果</div>
+    <!-- 碎片 -->
+    <div class='mood'>
+        <div class="panel panel-default">
+            <div class="panel-heading title-cpt">
+                <h3 class="panel-title">
+                        相关碎片 | Related Moods
+                    </h3>
+            </div>
+            <div class="panel-body hot-mood">
+                <!-- 碎片列表 -->
+                {volist name="moodArr" id="vo" empty="$empty"}
+                <div class="warterfall">
+                    <div class="thumbnail mood-item">
+                        <a class="hot-mood-content" href="{:url('index/mood/mood_detail',['fragment_id'=>$vo['fragment_id']])}">
+                                <img src="__UPLOADS__/mood/{$vo.img}" alt="">                            
+                                <div class="caption">
+                                    <p>&emsp;&emsp;{$vo["content"]}</p>                                
+                                </div>
+                             </a>
+                        <h5>By&nbsp;<a href="{:url('index/user_info/user_info',['user_id'=>$vo['user_id']])}">{$vo["user"]}</a></h5>
+                    </div>
+                </div>
+                {/volist}
+                <!-- 碎片列表结束 -->
+            </div>
+        </div>
+    </div>
+    <div class='article'>
+        <div class="panel panel-default">
+            <div class="panel-heading title-cpt">
+                <h3 class="panel-title">
+                        相关文章 | Related Articles
+                    </h3>
+            </div>
+            <!--  热门文章 -->
+            {volist name="articleArr" id="data" empty="$empty"}
+            <div class="panel-body">
+                <div class="article-info {$data.img=='' ? 'article-cpt-noimg' : ''}">
+                    <div class='article-info-box'>
+                        <div class="article-title ">
+                            <a href="{:url('index/read/article_detail',['article_id'=>$data['article_id']])}" target="_blank">{$data['title']}</a>
+                        </div>
+                        <div class="article-author"><a href="{:url('index/user_info/user_info',['user_id'=>$data['user_id']])}" target="_blank">By&nbsp;/&nbsp;{$data.user}</a></div>
+                        <div class="article-content">
+                            {$data['excerpt']}
+                            <span class="view-all">
+                                    <a href="{:url('index/read/article_detail',['article_id'=>$data['article_id']])}" target="_blank">VIEW ALL<span class="glyphicon glyphicon-play"></span>
+                            </a>
+                            </span>
+                        </div>
+                    </div>
+                    <div class='article-others'>{$data['skip']}次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:{$data.comment_count}&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:{$data['like']} </div>
+                </div>
+                {if condition="$data.img neq ''"}
+                <div class='article-img' style='background-image: url("{$data.img}");'></div>
+                {/if}
+            </div>
+            {/volist}
+            <!--  热门文章结束 -->
+        </div>
+    </div>
+    <div class="user">
+        <div class="panel panel-default">
+            <div class="panel-heading title-cpt">
+                <h3 class="panel-title">
+                         相关作者 | Related Writer
+                    </h3>
+            </div>
+            <div class="panel-body user-list">
+                {volist name="userArr" id="list" empty="$empty"}
+                <div class="user-cpt">
+                    <div class="user-info">
+                        <div class="user-left">
+                            <a href="{:url('index/user_info/user_info',['user_id'=>$list.user_id])}" target="_blank">
+                                <img src="__UPLOADS__/head/{$list.avatar!='' ? $list.avatar :'no-head.png'}" alt="头像"/>
+                            </a>
+                        </div>
+                        <div class="user-right">
+                            <div class="user-name">
+                                <a href="{:url('index/user_info/user_info',['user_id'=>$list.user_id])}" target="_blank">{$list.nickname}</a>
+                            </div>
+                            <div class="user-desc">{$list.desc}</div>
+                        </div>
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+(function($) {
+
+})(jQuery);
+</script>
+{/block}

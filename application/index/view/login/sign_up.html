@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>注册</title>
+    <link rel="stylesheet" href="__STATIC__/css/bootstrap.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/font-awesome.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/toastr.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/main.css">
+    <script src="__STATIC__/js/jquery-2.1.4.min.js"></script>
+    <script src="__STATIC__/js/bootstrap.min.js"></script>
+    <script src="__STATIC__/js/toastr.min.js"></script>
+</head>
+
+<body class='sign sign_up'>
+    <!-- 注册-->
+    <div class='container w420 p15 bg-white mt-100 tc' style="opacity:0.8;">
+        <h4 class="title">
+		<div>
+			<a  href="{:url('/index/login/sign_in')}">登录</a>
+			<b>·</b>
+			<a id="js-sign-up-btn" class="active" href="{:url('/index/login/sign_up')}">注册</a>		
+		</div>
+	</h4>
+        <form id="form" action="{:url('/index/login/register')}" class="form-validation" method="POST">
+            <div class="form-group">
+                <input type="text" name="tel" autocomplete="off" class="form-control" placeholder="手机号" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <input type="text" name="nickname" autocomplete="off" class="form-control" placeholder="昵称4~12位 由中文、英文或数字组成" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" autocomplete="off" class="form-control" placeholder="密码6~20位 由英文或数字组成">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password1" autocomplete="off" class="form-control" placeholder="确认密码">
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-sign" style="outline: none;">注册</button>
+            </div>
+        </form>
+    </div>
+</body>
+<script type="text/javascript">
+;
+(function($) {
+    toastr.options = {
+        positionClass: "toast-top-center",
+        timeOut: "1500"
+    };
+
+    $(".btn-sign").click(function(e) {
+        e.preventDefault();
+
+        var tel = $("input[name='tel']").val(),
+            tel = $.trim(tel),
+            password = $("input[name='password']").val(),
+            password1 = $("input[name='password1']").val(),
+            nickname = $("input[name='nickname']").val(),
+            nickname = $.trim(nickname);
+
+        var telCheck = /^[0-9]{11}$/,
+            nameCheck = /^[\u4E00-\u9FA5A-Za-z0-9]{4,12}$/,
+            passCheck = /^[A-Za-z0-9]{6,20}$/;
+
+
+        if (!telCheck.test(tel)) {
+            toastr.error("手机号格式错误！");
+            return false;
+        }
+        if (!nameCheck.test(nickname)) {
+            toastr.error("昵称格式错误！");
+            return false;
+        }
+
+        if (password != password1) {
+            toastr.error("两次输入的密码不匹配");
+            $("input[name='password1']").val("");
+            return false;
+        }
+
+        if (!passCheck.test(password)) {
+            toastr.error("密码只能由字母和数字组成！");
+            return false;
+        }
+
+        $("#form").submit();
+
+    });
+
+})(jQuery)
+</script>
+
+</html>

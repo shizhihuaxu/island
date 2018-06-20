@@ -1,0 +1,193 @@
+{extend name="base"/} {block name="title"}碎片管理{/block} {block name="style"}
+<style>
+table span {
+    color: #3BAFDA;
+    cursor: pointer;
+}
+.mood-content{max-width: 400px;}
+.search-only .search-icon{
+    cursor: pointer;
+    left:auto;
+    right:8.5px;
+}
+.search-only .form-control:last-child {
+    padding-left: 20px;
+}
+</style>
+{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li><span>碎片管理</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- 筛选条件 -->
+                    <div class="row">
+                      <div class="col-md-offset-9 col-md-3">
+                          <div class="form-search search-only">
+                            <i id="search" class="search-icon glyphicon glyphicon-search"></i>
+                            <input name="keyword" type="text" placeholder="请输入关键字" autocomplete="off" class="form-control search-query">
+                          </div>
+                      </div>
+                    </div>
+                    <!-- 标签列表 -->
+                    <div class="bs-example">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>作者</th> 
+                                    <th>分类</th>                         
+                                    <th>内容</th>
+                                    <th>碎片状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 标签列表结束 -->
+                    <!-- 分页 -->
+                    <div class="row content-row-pagination">
+                        <div class="col-md-6">
+                            共&nbsp;<span class="total"></span>&nbsp;条数据
+                        </div>
+                        <div class="col-md-offset-3 col-md-6">
+                            <ul class="pagination">
+                            </ul>
+                        </div>
+                    </div>
+                    <!--  -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+// 恢复碎片
+$('body').on('click', '.reset', function() {
+    let that = $(this);
+    let fragment_id = 0;
+    fragment_id = $(this).siblings('input').val();
+
+    $.ajax({
+        url: "{:url('admin/moods/show')}",
+        type: "POST",
+        data: { 'fragment_id': fragment_id },
+        success: function(data) {
+            if (data.msg === "success") {
+                toastr.success("恢复成功");
+                that.parent('td').siblings('.status').text('显示')
+                that.removeClass('reset').addClass('delete').text('删除');
+            } else {
+                toastr.error("恢复失败");
+            }
+        }
+    })
+})
+// 删除碎片
+$('body').on('click', '.delete', function() {
+    let that = $(this);
+    let fragment_id = 0;
+    fragment_id = $(this).siblings('input').val();
+
+    $.ajax({
+        url: "{:url('admin/moods/remove')}",
+        type: "POST",
+        data: { 'fragment_id': fragment_id },
+        success: function(data) {
+            if (data.msg === "success") {
+                toastr.success("删除成功");
+                that.parent('td').siblings('.status').text('已删除')
+                that.removeClass('delete').addClass('reset').text('恢复');
+            } else {
+                toastr.error("删除失败");
+            }
+        }
+    })
+})
+// 分页
+
+getList(1);
+//获取列表
+function getList(page) {
+    if (typeof(page) == 'undefined') {
+        page = 1;
+    }
+
+    var keyword = "",
+        keyword = $("input[name='keyword']").val(),
+        keyword = $.trim(keyword);
+
+    var htmlStr = '';
+    $('table tbody').html('');
+    $('.pagination').html('');
+    //$('.show-gif').show();
+
+    //获取列表 
+    $.getJSON("{:url('admin/moods/getList')}", { "page": page,"keyword":keyword }, function(data) {
+        if (typeof data == 'object') {
+            var list = data.list;
+
+            if (list.length) {
+                for (var i in list) {
+                    htmlStr += `<tr>`;
+
+                    if (i % 6 == 1) {
+                        htmlStr += `<tr class="active">`;
+                    }
+                    if (i % 6 == 3) {
+                        htmlStr += `<tr class="success">`;
+                    }
+                    if (i % 6 == 5) {
+                        htmlStr += `<tr class="info">`;
+                    }
+
+                    htmlStr += `<td>${parseInt(i)+1+(page-1)*10}</td>
+                                    <td>${list[i].nickname}</td>
+                                    <td>${list[i].tag}</td>
+                                    <td class="mood-content">${list[i].content}</td>
+                                    <td class="status">${list[i].remove == 0?"显示":"已删除"}</td>
+                                    <td>
+                                        <input type="hidden" value="${list[i].fragment_id}" />
+                                        <span class="${list[i].remove==0?'delete':'reset'}">${list[i].remove==0?'删除':'恢复'}</span>
+                                    </td>
+                                </tr>`;
+                }
+
+                //分页             
+                var htmlTmp = pageHtml(data.count, page);
+                $(".total").text(data.count);
+                $('.pagination').html(htmlTmp);
+               
+            } else {
+                htmlStr += '<p align="center">暂时还没有数据。</p>';
+                $(".total").text("0");
+            }
+        }
+        //$('.show-gif').hide();
+        $("table tbody").html(htmlStr);
+    })
+}
+
+// 关键字搜索
+$("#search").click(function(){
+   getList();
+})
+
+$("input[name='keyword']").keydown(function(e) {
+    if (e.keyCode == "13") {
+      getList();
+    }
+});
+</script>
+{/block}

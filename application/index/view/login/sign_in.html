@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录</title>
+    <link rel="stylesheet" href="__STATIC__/css/bootstrap.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/font-awesome.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/toastr.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/main.css">
+    <script src="__STATIC__/js/jquery-2.1.4.min.js"></script>
+    <script src="__STATIC__/js/bootstrap.min.js"></script>
+    <script src="__STATIC__/js/toastr.min.js"></script>
+    <style type="text/css">
+    .sign_in input[type='text'],
+    .sign_in input[type='password'] {
+        border: none;
+        box-shadow: 0 1px 0 0 #ccc;
+    }
+
+    .sign_in input[type='text']:focus,
+    .sign_in input[type='password']:focus {
+        border: none;
+        box-shadow: 0 1px 0 0 #62AA62;
+    }
+
+    .modal-dialog {
+        width: 400px;
+        height: 300px;
+        margin-top: 100px;
+    }
+
+    .modal-dialog .modal-header {
+        text-align: center;
+        color: #4ea980;
+    }
+
+    .modal-dialog .modal-footer {
+        border: 0;
+    }
+    </style>
+</head>
+
+<body class='sign sign_in'>
+    <!-- 登录-->
+    <div class='container w420 p15 bg-white mt-100 tc' style="opacity:0.8;height:100%;">
+        <h4 class="title">
+        <div>
+            <a class="active" href="{:url('/index/login/sign_in')}">登录</a>
+            <b>·</b>
+            <a id="js-sign-up-btn" href="{:url('/index/login/sign_up')}">注册</a>     
+        </div>
+    </h4>
+        <form id="form" action="{:url('/index/login/login')}" class="form-validation" method="POST">
+            <div class="form-group">
+                <input type="text" name="tel" autocomplete="off" class="form-control" placeholder="手机号" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" autocomplete="off" class="form-control" placeholder="密码" spellcheck="false">
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-7">
+                        <input type="text" name="captcha" class="form-control" placeholder="请输入验证码" spellcheck="false" autocomplete="off">
+                    </div>
+                    <img id="captcha" class="col-xs-6 col-sm-5" src="{:captcha_src()}" alt="captcha" style="height:40px;cursor: pointer;" />
+                </div>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-success btn-sign" style="outline: none;">登录</button>
+            </div>
+            <div class="form-group" style="text-align: right;">
+                <a data-toggle="modal" data-target="#reset" style="color:#4ea980;">忘记密码？</a>
+            </div>
+        </form>
+    </div>
+    <!-- 找回密码 -->
+    <div class="modal fade" id="reset" role="dialog" aria-labelledby="resetLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="resetLabel">找回密码</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <input type="text" name="tel" class="form-control" placeholder="请输入手机号码" spellcheck="false">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-success">发送验证码</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+;
+(function($) {
+    toastr.options = {
+        positionClass: "toast-top-center",
+        timeOut: "1500"
+    };
+
+    // 切换验证码
+    $("#captcha").click(function() {
+        $(this).attr("src", "{:captcha_src()}");
+    })
+
+    // 提交表单
+
+    $(".btn-sign").click(function(e) {
+        e.preventDefault();
+
+        var tel = $("input[name='tel']").val(),
+            tel = $.trim(tel),
+            password = $("input[name='password']").val(),
+            captcha = $("input[name='captcha']").val(),
+            captcha = $.trim(captcha);
+
+        if (tel.length == 0 || password.length == 0 || captcha.length == 0) {
+            toastr.error("内容未填写完整！");
+            return false;
+        }
+        if (tel.length != 11) {
+            toastr.error("手机号格式错误！");
+            return false;
+        }
+
+        $.ajax({
+            url: "{:url('/index/login/login')}",
+            method: "POST",
+            async: false,
+            data: { "captcha": captcha },
+            success: function(data) {
+                if (data.msg == "success") {
+                    $("#form").submit();
+                }
+                if (data.msg == "error") {
+                    toastr.error("验证码错误");
+                    $("input[name='captcha']").val("");
+                    $("#captcha").attr("src", "{:captcha_src()}");
+                }
+            }
+
+        })
+
+    })
+})(jQuery);
+</script>
+
+</html>

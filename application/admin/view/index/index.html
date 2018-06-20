@@ -1,0 +1,75 @@
+{extend name="base"/} {block name="title"}后台管理首页{/block} {block name="style"}{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li class="active"><span>首页</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <!-- 用户登录时间分布 -->
+                            <div id="user_login" style="width: 100%;height:300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+// 用户登录时间按小时分布
+var user_login_chart = echarts.init(document.getElementById('user_login'));
+var user_login_option = {
+    title: { text: '用户登录时间分布情况' },
+    tooltip: {
+        show: true
+    },
+    toolbox: {
+        feature: {
+            dataZoom: {
+                yAxisIndex: 'none'
+            },
+            restore: {},
+            saveAsImage: {}
+        }
+    },
+    xAxis: {
+        show: true,
+        name: "时间",
+        type: 'category',
+        data: ['0','1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']
+    },
+    yAxis: {
+        show: true,
+        name: "访问量",
+        type: 'value'
+    },
+    dataZoom: {
+        type: 'inside',
+        start: 0,
+        end: 100
+    },
+    series: [{
+        data: {$times},
+        type: 'line',
+        itemStyle: {
+            borderColor: "#37BC9B"
+        },
+        lineStyle: {
+            color: "#37BC9B"
+        },
+
+        smooth: true
+    }]
+};
+user_login_chart.setOption(user_login_option);
+</script>
+{/block}

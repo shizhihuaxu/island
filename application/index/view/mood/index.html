@@ -1,0 +1,266 @@
+{extend name="base"/} {block name="title"}碎片{/block} {block name="content"}
+<div class="container mood">
+    <!-- 发布碎片 -->
+    <div class="publish-timeline">
+        <div class="now-date">
+            <span>{$day}</span>
+            <span class="date-English">{$month}</span>
+        </div>
+        <div class="publish-content">
+            <form role="form" id="form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <textarea class="form-control" rows="6" name="content" placeholder="这一刻，你想说什么？" spellcheck="false"></textarea>
+                </div>
+                <div class="row action">
+                    <div class="col-lg-2">
+                        <div class="uploadImg">
+                            <span class="glyphicon glyphicon-picture" style="color:#78bc85;font-size:16px;"></span>
+                            <span class="action-title">图片</span>
+                            <input type="file" name="moodImg" id="moodImg">
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="addTags">
+                            <span class="glyphicon glyphicon-tags" style="color:#78bc85;font-size:16px;"></span>
+                            <span class="action-title tag-icon">添加分类</span>
+                        </div>
+                        <div class="panel panel-default tag-menu" style="display:none;">
+                            <div class="panel-body tag-drop">
+                                <div class="row">
+                                    {volist name="tagArr" id="vo"}
+                                    <div class="col-md-4 tag-cpt" data-tag_id="{$vo.tag_id}">
+                                        <a>{$vo.name}</a>
+                                    </div>
+                                    {/volist}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-offset-3">
+                        <span><span class="word-count">0</span>&nbsp;/140字</span>
+                    </div>
+                    <div class="col-lg-1 col-md-offset-1">
+                        <input type="hidden" name="user_id" value="{$Think.session.user_id}" />
+                        <button id="submit" type="submit" class="btn btn-success">发布碎片</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- 热门分类 -->
+    <div class="panel panel-default">
+        <div class="panel-heading title-cpt">
+            <h3 class="panel-title">
+		            热门标签
+		        </h3>
+        </div>
+        <div class="panel-body">
+            {volist name="tagArr" id="vo"}
+            <div class="article-type-cpt">
+                <a class="get-sort" data-sort="{$vo.tag_id}">
+                    <input type="hidden" name="sortNum" value="{$sortCount[$i-1]}" />
+                    <img src="__UPLOADS__/tagImg/{$vo.img}" />
+                    <span class="type-bg"></span>
+                    <span class="type-title">{$vo.name}</span>
+                    <span class="type-des">{$sortCount[$i-1]}&nbsp;个</span>
+                </a>
+            </div>
+            {/volist}
+        </div>
+    </div>
+    <!-- 全部碎片 -->
+    <div class="panel panel-default">
+        <div class="panel-heading title-cpt">
+            <h3 class="panel-title" id="sortName">
+		            全部碎片
+		        </h3>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <!-- 碎片列表 -->
+            <input type="hidden" name="moodNum" value="{$moodNum}">
+            <div class="mood-list" id="mood-list">
+            </div>
+            <!-- 加载动画 -->
+            <div class="loading" style="display:none;"></div>
+            <div class="no-more-data" style="display:none;">-&nbsp;已加载全部&nbsp;-</div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+;
+(function($) {
+    //发布碎片时的tag_id
+    var tag_id = 0;
+
+    // 添加分类面板
+    $(".addTags").click(function(e) {
+        e.stopPropagation();
+        $(".tag-menu").toggle();
+    });
+    $(".tag-cpt").click(function(e) {
+        e.stopPropagation();
+        var tag_name = $(this).text();
+        tag_id = $(this).data("tag_id");
+
+        $(".tag-icon").text(tag_name);
+        $(".tag-menu").toggle();
+    });
+    $("body").click(function(e) {
+        $(".tag-menu").hide();
+    });
+
+
+    // 字数实时统计
+    var len = 0;
+    $("textarea[name='content']").on("keyup", function() {
+        var val = $(this).val(),
+            len = $.trim(val).length;
+        $(".word-count").text(len);
+        if (len > 140) {
+            $(this).val(val.slice(0, 140));
+            $(".word-count").text(140);
+        }
+
+    });
+
+    // 发布碎片
+    $("#submit").click(function(e) {
+        e.preventDefault();
+
+        if (!isLogin) {
+            toastr.error("请先登录");
+            return false;
+        }
+        var content = $("textarea[name='content']").val(),
+            len = $.trim(content).length,
+            form = document.getElementById("form"),
+            formData = new FormData(form);
+
+        if (tag_id == 0) {
+            toastr.error("请添加分类");
+            return false;
+        }
+        if (len == 0) {
+            toastr.error("内容不能为空");
+            return false;
+        }
+        formData.append("tag", tag_id);
+        formData.append("content", $.trim(content));
+
+
+        $.ajax({
+            url: "{:url('index/mood/mood_publish')}",
+            type: "POST",
+            cache: false,
+            data: formData,
+            processData: false, //因为data值是FormData对象，不需要对数据做处理
+            contentType: false, //form上已经设置enctype
+            success: function(data) {
+                if (data.msg === "success") {
+                    toastr.success("发布成功");
+                    $(".tag-icon").text("添加分类");
+                    $("textarea[name='content']").val("");
+                    $(".word-count").text("0");
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+    // 懒加载
+    var gPageSize = 8, //每次加载的数据量
+        i = 1, //设置当前页数，全局变量
+        moodNum = $("input[name='moodNum']").val(),
+        pages = Math.ceil(moodNum / gPageSize),
+        tag = "";
+
+    function getData() {
+
+        if (i > pages) {
+            $(".loading").hide();
+            $(".no-more-data").show();
+            return false;
+        }
+
+        $.ajax({
+            type: "post",
+            url: "{:url('index/mood/lazy_load')}",
+            data: { "tag": tag, "pageSize": gPageSize, "pageNum": i },
+            success: function(data) {
+                $(".loading").hide();
+                if (data.length > 0) {
+                    insertMood(data, $("#mood-list"));
+                }
+            },
+            beforeSend: function() {
+                $(".loading").show();
+            },
+            error: function() {
+                $(".loading").hide();
+            }
+        });
+        i++; //页码自动增加，保证下次调用时为新的一页。 
+    }
+    getData(); //初始化第一页数据
+    tools.lazyLoad(getData);
+
+
+    // 查看分类
+    $(".get-sort").click(function(e) {
+        e.preventDefault();
+
+        var sort = $(this).data("sort"),
+            title = $(this).find("span.type-title").html();
+
+        $("#sortName").html(title);
+        $("#mood-list").html("");
+
+        tag = sort;
+        i = 1;
+        articleNum = $(this).find("input[name='sortNum']").val();
+        pages = Math.ceil(articleNum / gPageSize)
+        getData();
+        tools.lazyLoad(getData);
+    });
+    // 点赞
+    $("#mood-list").on("click", ".likes-cpt", function() {
+        //0是取消点赞 1是点赞
+        var isAdd = $(this).find("input[name='isAdd']").val(),
+            fragment_id = $(this).find("input[name='content_id']").val(),
+            obj_user_id = $(this).find("input[name='obj_user_id']").val();
+
+        if (!isLogin) {
+            toastr.error("您还没有登录");
+            return false;
+        }
+
+        if (!$(this).hasClass("likes")) {
+            isAdd = 1;
+            $(this).addClass("likes");
+        } else {
+            $(this).removeClass("likes");
+            isAdd = 0;
+        }
+
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('/index/mood/mood_like')}",
+            data: { "fragment_id": fragment_id, "isAdd": isAdd, "obj_user_id": obj_user_id },
+            dataType: "json",
+            success: function(data) {
+
+                if (data.msg === "success") {
+
+                } else if (data.msg === "error") {
+                    toastr.error("点赞失败！");
+                }
+            }
+        });
+    });
+})(jQuery);
+</script>
+{/block}

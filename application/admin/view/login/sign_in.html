@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        {block name="title"}{/block}
+    </title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/css/bootstrap.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/site.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/toastr.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/admin.css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,800,700,400italic,600italic,700italic,800italic,300italic" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="__STATIC__/js/site.min.js"></script>
+    <script src="__STATIC__/js/jquery-2.1.4.min.js"></script>
+    <script src="__STATIC__/js/bootstrap.min.js"></script>
+    <script src="__STATIC__/js/echarts.min.js"></script>
+    <script src="__STATIC__/js/toastr.min.js"></script>
+    <style>
+    body {
+        padding-top: 100px;
+        padding-bottom: 40px;
+        background-color: #303641;
+        color: #C1C3C6
+    }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <form class="form-signin" role="form" action="{:url('/admin/login/login')}">
+            <h3 class="form-signin-heading">管理员登录</h3>
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon">
+                        <i class="glyphicon glyphicon-user"></i>
+                    </div>
+                    <input type="text" class="form-control" name="username" placeholder="Username" spellcheck="false" autocomplete="off" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon">
+                        <i class=" glyphicon glyphicon-lock "></i>
+                    </div>
+                    <input type="password" class="form-control" name="password" placeholder="Password" autocomplete="off" />
+                </div>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        </form>
+    </div>
+    <div class="clearfix"></div>
+</body>
+<script type="text/javascript">
+</script>
+
+</html>

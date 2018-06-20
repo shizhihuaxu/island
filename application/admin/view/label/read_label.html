@@ -1,0 +1,108 @@
+{extend name="base"/} {block name="title"}标签管理{/block} {block name="style"}{/block} {block name="content"}
+<!--header-->
+<div class="container-fluid">
+    <!--documents-->
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li><a>标签管理</a></li>
+                            <li><span>文章标签管理</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- 按钮组 -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="col-md-2">
+                                <a href="javascript:history.go(-1);" class="btn btn-default" role="button">
+                                 <i class="glyphicon glyphicon-arrow-left"></i>  返回</a>
+                            </div>
+                            <div class="col-md-offset-8 col-md-2">
+                                <a href="{:url('/admin/label/new_classify')}" class="btn btn-success" role="button">
+                                 <i class="glyphicon glyphicon-plus-sign"></i>  添加分类</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 标签列表 -->
+                    <div class="bs-example">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>名称</th>
+                                    <th>英文描述</th>
+                                    <th>中文描述</th>
+                                    <th>背景图片</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {volist name="classifyList" id="vo" key="k"} {if condition="$k%6 eq 1"}
+                                <tr class="active">
+                                    <td>{$k}</td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.en_desc}</td>
+                                    <td>{$vo.desc}</td>
+                                    <td>{$vo.img}</td>
+                                    <td><a href="{:url('/admin/label/classify_edit',['classify_id'=>$vo.classify_id])}">编辑</a></td>
+                                </tr>
+                                {/if} {if condition="$k%6 eq 2"}
+                                <tr>
+                                    <td>{$k}</td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.en_desc}</td>
+                                    <td>{$vo.desc}</td>
+                                    <td>{$vo.img}</td>
+                                    <td><a href="{:url('/admin/label/classify_edit',['classify_id'=>$vo.classify_id])}">编辑</a></td>
+                                </tr>
+                                {/if} {if condition="$k%6 eq 3"}
+                                <tr class="success">
+                                    <td>{$k}</td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.en_desc}</td>
+                                    <td>{$vo.desc}</td>
+                                    <td>{$vo.img}</td>
+                                    <td><a href="{:url('/admin/label/classify_edit',['classify_id'=>$vo.classify_id])}">编辑</a></td>
+                                </tr>
+                                {/if} {if condition="$k%6 eq 4"}
+                                <tr>
+                                    <td>{$k}</td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.en_desc}</td>
+                                    <td>{$vo.desc}</td>
+                                    <td>{$vo.img}</td>
+                                    <td><a href="{:url('/admin/label/classify_edit',['classify_id'=>$vo.classify_id])}">编辑</a></td>
+                                </tr>
+                                {/if} {if condition="$k%6 eq 5"}
+                                <tr class="info">
+                                    <td>{$k}</td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.en_desc}</td>
+                                    <td>{$vo.desc}</td>
+                                    <td>{$vo.img}</td>
+                                    <td><a href="{:url('/admin/label/classify_edit',['classify_id'=>$vo.classify_id])}">编辑</a></td>
+                                </tr>
+                                {/if} {if condition="$k%6 eq 0"}
+                                <tr>
+                                    <td>{$k}</td>
+                                    <td>{$vo.name}</td>
+                                    <td>{$vo.en_desc}</td>
+                                    <td>{$vo.desc}</td>
+                                    <td>{$vo.img}</td>
+                                    <td><a href="{:url('/admin/label/classify_edit',['classify_id'=>$vo.classify_id])}">编辑</a></td>
+                                </tr>
+                                {/if} {/volist}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}{/block}

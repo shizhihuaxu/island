@@ -1,0 +1,83 @@
+{extend name="base"/} {block name="title"}分类文章|阅读{/block} {block name="content"}
+<div class="container read sort">
+    <div class="article-type-info" style="background-image: url(__UPLOADS__/classifyImg/{$classify_info.img});">
+        <span></span>
+        <div class="article-type-title">{$classify_info.name}</div>
+        <div class="article-type-others">{$classify_info.en_desc} / {$count}篇文章</div>
+        <div class="article-type-des">{$classify_info.desc}</div>
+    </div>
+    <div class="type-title-cpt">
+        <span class="active">HOT</span>
+        <span>NEW</span>
+        <input type="hidden" name="classify" value="{$classify_id}" />
+    </div>
+    <!-- 文章列表 -->
+    <div class="panel panel-default" id="article-list">
+        <input type="hidden" name="articleNum" value="{$count}">
+    </div>
+    <!-- 加载动画 -->
+    <div class="no-more-data" style="display: none;">-&nbsp;已加载全部&nbsp;-</div>
+    <div class="loading" style="display: none;"></div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+;
+(function($) {
+    var classify = $("input[name='classify']").val();
+
+    //懒加载
+    var gPageSize = 5, //每次加载的数据量
+        i = 1; //设置当前页数，全局变量
+    articleNum = $("input[name='articleNum']").val(),
+        pages = Math.ceil(articleNum / gPageSize),
+        type = "hot";
+
+    function getData() {
+
+        if (i > pages) {
+            $(".loading").hide();
+            $(".no-more-data").show();
+            return false;
+        }
+
+        $.ajax({
+            type: "post",
+            url: "{:url('/index/read/sort_type')}",
+            data: { "type": type, "classify": classify, "pageSize": gPageSize, "pageNum": i },
+            success: function(data) {
+                console.log(data);
+                $(".loading").hide();
+                if (data.length > 0) {
+                    insertArticle(data, $("#article-list"));
+                }
+            },
+            beforeSend: function() {
+                $(".loading").show();
+            },
+            error: function() {
+                $(".loading").hide();
+            }
+        });
+        i++; //页码自动增加，保证下次调用时为新的一页。 
+    }
+    getData(); //初始化第一页数据
+    tools.lazyLoad(getData);
+
+    // 获取 最新最热  数据
+    $(".type-title-cpt span").click(function() {
+        if (!$(this).hasClass("active")) {
+            $(this).addClass("active");
+            $(this).siblings("span").removeClass("active");
+        }
+
+        type = $(this).text().toLowerCase();
+        i = 1;
+        $("#article-list").html("");
+        getData();
+        tools.lazyLoad(getData);
+
+    });
+
+})(jQuery);
+</script>
+{/block}

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        {block name="title"}{/block}
+    </title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/css/bootstrap.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/font-awesome.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/toastr.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/main.css">
+    <script src="__STATIC__/js/jquery-2.1.4.min.js"></script>
+    <script src="__STATIC__/js/bootstrap.min.js"></script>
+    <script src="__STATIC__/js/toastr.min.js"></script>
+    <script src="__STATIC__/js/js.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- 导航 -->
+        {if ($Think.session.user_id)} {include file='/common/header' title="首页" avatar="$avatar"} {else /} {include file='/common/head'} {/if}
+        <!-- 主内容区 -->
+        {block name="content"}{/block} {include file='/common/footer'}
+    </div>
+    {block name="toTop"}
+    <div class="back-top" style="display:none;"></div>
+    {/block}
+</body>
+<!-- js脚本区 -->
+<script type="text/javascript">
+// 消息提示插件配置
+toastr.options = {
+    positionClass: "toast-top-center",
+    timeOut: "1500"
+};
+
+// 搜索
+$(".search-btn").click(function(){
+    var keyword = $(".search-input").val();
+        keyword = $.trim(keyword);
+
+    if(""==keyword){
+        toastr.error("请输入搜索关键字");
+        return false;
+    }
+    
+    $("input[name='keyword']").val(keyword);
+    $("#search-form").submit();
+})
+
+$("#search-form").keydown(function(e) {
+    if (e.keyCode == "13") {
+        var keyword = $(".search-input").val();
+        keyword = $.trim(keyword);
+
+        if(""==keyword){
+            toastr.error("请输入搜索关键字");
+            return false;
+        }
+    
+        $("input[name='keyword']").val(keyword);
+        $("#search-form").submit();
+    }
+});
+
+// 全局变量 是否登录标志
+var isLogin = false;
+
+if ("{$Think.session.user_id}" && "{$Think.session.user_id}" != '') {
+    isLogin = true;
+}
+
+// 回到顶部
+$(".back-top").eq(0).click(function() {
+    $("body,html").animate({
+        scrollTop: 0
+    }, 500);
+});
+
+// 导航栏二级菜单显隐控制
+$(".navbar-right>li").hover(function() {
+    $(this).find(".sub-menu").show();
+}, function() {
+    $(this).find(".sub-menu").hide();
+})
+
+
+/**
+ *  [ insertArticle    插入文章项]
+	@param  json data [文章内容的json对象]
+	@param  [HTMLElement] obj [插入的目标对象] 
+	@return [type] [description]
+ */
+function insertArticle(data, obj) {
+    var htmlStr = "";
+
+    if (data.length != 0) {
+        $.each(data, function(index, val) {
+            // pinie
+            htmlStr += '<div class="panel-body';
+            if (val.img == '') {
+                htmlStr += '  article-cpt-noimg">' //必须要有空格 才是两个类
+            } else {
+                htmlStr += '">';
+            }
+            htmlStr += '<div class="article-info">' +
+                '<div class="article-info-box">' +
+                '<div class="article-title">' +
+                '<a href="__PUBLIC__/index/read/article_detail/' + val.article_id + '" target="_blank">' + val.title + '</a>' +
+                '</div>' +
+                '<div class="article-author">' +
+                '<a target="_blank" href="__PUBLIC__/index/user_info/user_info/' + val.user_id + '">By&nbsp;/&nbsp;' + val.user + '</a>' +
+                '</div>' +
+                '<div class="article-content">' +
+                val.excerpt +
+                '<span class="view-all">' +
+                '<a href="__PUBLIC__/index/read/article_detail/' + val.article_id + '" target="_blank">VIEW ALL<span class="glyphicon glyphicon-play"></span>' +
+                '</a>' +
+                '</span>' +
+                '</div>' +
+                '</div>' +
+                '<div class="article-others">' + val.skip + '次阅读&nbsp;&nbsp;|&nbsp;&nbsp;' +
+                '评论:' + val.comment_count + '&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:' + val.like + '</div>' +
+                '</div>';
+            if (val.img != "") {
+                htmlStr += '<div class="article-img" style=\'background-image: url("' + val.img + '");\'></div>' +
+                    '</div>';
+            } else {
+                htmlStr += '</div>';
+            }
+            // pinjie
+        })
+    } else {
+        htmlStr += '<div class="no-more-data">-&nbsp;暂时没有数据&nbsp;-</div>';
+    }
+    obj.append(htmlStr);
+    // 
+}
+
+/**
+ *  [insertMood   插入心情碎片]
+	@param  json data [碎片信息的json对象]
+	@param  [HTMLElement] obj [插入的目标对象] 
+	@return [type] [description]
+ */
+function insertMood(data, obj) {
+
+    var htmlStr = "";
+
+    if (data.length != 0) {
+
+        $.each(data, function(index, val) {
+
+            htmlStr += '<div class="warterfall">' +
+                '<div class="thumbnail card-item">' +
+                '<a href="__PUBLIC__/index/mood/mood_detail/' + val.fragment_id + '">' +
+                '<img src="__UPLOADS__/mood/' + val.img + '"  alt=""/>' +
+                '<div class="caption">' +
+                '<p>&emsp;&emsp;' + val.content + '</p>' +
+                '</div>' +
+                '<div class="card-user">' +
+                '<div class="card-user-info">' +
+                '<a class="user-head" target="_blank" href="__PUBLIC__/index/user_info/user_info/' + val.user_id + '">';
+            if (val.user_avatar && val.user_avatar != "") {
+                htmlStr += '<img src="__UPLOADS__/head/' + val.user_avatar + '"/>';
+            } else {
+                htmlStr += '<img src="__UPLOADS__/head/no-head.png"  alt="head"/>';
+            }
+            htmlStr += val.nickname +
+                '</a>' +
+                '</div>' +
+                '</div>';
+            if ("no" == val.is_like) {
+                htmlStr += '<div class="likes-cpt card-likes">' +
+                    '<input type="hidden" name="user_id" value="{$Think.session.user_id}"/>' +
+                    '<input type="hidden" name="content_id" value="' + val.fragment_id + '"/>' +
+                    '<input type="hidden" name="obj_user_id" value="' + val.user_id + '"/>' +
+                    '<input type="hidden" name="isAdd" value="0"/>' +
+                    '</div>';
+            } else {
+                htmlStr += '<div class="likes-cpt card-likes likes">' +
+                    '<input type="hidden" name="user_id" value="{$Think.session.user_id}"/>' +
+                    '<input type="hidden" name="content_id" value="' + val.fragment_id + '"/>' +
+                    '<input type="hidden" name="obj_user_id" value="' + val.user_id + '"/>' +
+                    '<input type="hidden" name="isAdd" value="1"/>' +
+                    '</div>';
+            }
+            htmlStr += '</a>' +
+                '</div>' +
+                '</div>';
+        });
+    } else {
+        htmlStr += '<div class="no-more-data">-&nbsp;暂时没有数据&nbsp;-</div>';
+    }
+    obj.append(htmlStr);
+    tools.warterfall(obj, $(".warterfall"));
+}
+
+/**
+@param data json data [用户信息的json对象]
+@param obj  [HTMLElement] obj [插入的目标对象] 
+*/
+function insertUser(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+        htmlStr += '<div class="user-like-cpt">' +
+            '<div class="s-user-icon">' +
+            '<a target="_blank" href="__PUBLIC__/index/user_info/user_info/' + val.user_info.user_id + '">';
+
+        if (val.user_info.avatar && val.user_info.avatar != "") {
+            htmlStr += '<img src="__UPLOADS__/head/' + val.user_info.avatar + '"/>';
+        } else {
+            htmlStr += '<img src="__UPLOADS__/head/no-head.png"  alt="head"/>';
+        }
+
+        htmlStr += '</a>' +
+            '</div>' +
+            '<div class="s-user-info">' +
+            '<div class="s-user-name">' +
+            '<a target="_blank" href="__PUBLIC__/index/user_info/user_info/' + val.user_info.user_id + '">' + val.user_info.nickname + '</a>' +
+            '</div>';
+
+        if (val.user_info.desc && val.user_info.desc != "") {
+            htmlStr += '<div class="s-user-des">' + val.user_info.desc + '</div>';
+        } else {
+            htmlStr += '<div class="s-user-des">这是一个还没有简介的岛主~</div>';
+        }
+
+        htmlStr += '</div>';
+        if (val.user_info.user_id != "{$Think.session.user_id}") {
+            htmlStr += '<div class="btn-focus btn-focus-no" style="display: ';
+            if (val.type == 0) {
+                htmlStr += ';">关注</div>';
+            } else {
+                htmlStr += 'none;">关注</div>';
+            }
+            htmlStr += '<div class="btn-focus btn-focus-yes" style="display: ';
+            if (val.type == 1) {
+                htmlStr += ';">已关注</div>'
+            } else {
+                htmlStr += ' none;">已关注</div>'
+            }
+            htmlStr += '<div class="btn-focus btn-focus-all" style="display: ';
+            if (val.type == 2) {
+                htmlStr += ';">互相关注</div>'
+            } else {
+                htmlStr += ' none;">互相关注</div>'
+            }
+            htmlStr += '<input type="hidden" name="be_followed_uid" value="' + val.user_info.user_id + '">' +
+                '</div>';
+        } else {
+            htmlStr += '</div>';
+        }
+
+    })
+
+    obj.append(htmlStr);
+}
+
+// 插入我发布的文章
+function insertMyArticle(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+
+        htmlStr += '<div  class="card-read-cpt">';
+        if (val.img && val.img != "") {
+            htmlStr += '<div class="card-top-img">' +
+                '<a href="__PUBLIC__/index/read/article_detail/' + val.article_id + ' target="_blank">' +
+                '<img src="' + val.img + '">' +
+                '</a>' +
+                '</div>';
+        }
+        htmlStr += '<div class="card-item">' +
+            '<div class="card-read-title">' +
+            '<a href="__PUBLIC__/index/read/article_detail/' + val.article_id + '" target="_blank">' + val.title + '</a>' +
+            '</div>' +
+            '<div class="card-content">' +
+            val.excerpt +
+            '<span class="view-all"><a href="__PUBLIC__/index/read/article_detail/' + val.article_id + '"  target="_blank">VIEW ALL<span class="glyphicon glyphicon-play"></span>' +
+            '</a></span>' +
+            '</div>' +
+            '<div class="card-others"><span class="card-type">' +
+            '<a href="__PUBLIC__/index/read/index" target="_blank">阅读</a></span>' +
+            '<span>' + val.skip + '次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:' + val.comment_count + '&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:' + val.like + '</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+    });
+
+    obj.append(htmlStr);
+    tools.warterfall(obj, $(".card-read-cpt"));
+}
+
+// 插入我发布的碎片
+function insertMyMood(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+
+        htmlStr += '<div class="card-timeline-cpt">';
+        if (val.img && val.img != "") {
+            htmlStr += '<div class="card-top-img">' +
+                '<a href="__PUBLIC__/index/mood/mood_detail/' + val.fragment_id + '" target="_blank">' +
+                '<img src="__UPLOADS__/mood/' + val.img + '" alt="img">' +
+                '</a></div>';
+        }
+        htmlStr += '<div class="card-item">' +
+            '<div class="card-content">' +
+            '<a href="__PUBLIC__/index/mood/mood_detail/' + val.fragment_id + '" target="_blank">' + val.content + '</a>' +
+            '</div>' +
+            '<div style="padding-top: 10px" class="card-others"><span class="card-type">' +
+            '<a href="__PUBLIC__/index/mood/index" target="_blank">碎片</a></span>' +
+            '<span>' + val.skip + '次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:' + val.comment_count + '&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:' + val.like + '</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+    });
+
+    obj.append(htmlStr);
+    tools.warterfall(obj, $(".card-timeline-cpt"));
+}
+
+// 插入我的评论
+function insertMyComment(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+        htmlStr += '<div class="msg-comment-cpt special-msg">' +
+            '<div class="m-user-icon">' +
+            '<a href="" target="_blank">' +
+            '<img src=""></a>' +
+            '</div>' +
+            '<div class="m-info"><div class="m-user-name">' +
+            '<a href="" target="_blank">季年:</a></div>' +
+            '</div>' +
+            '<div class="focus-content msg-title">你猜' +
+            '<span class="msg-date">[2017-11-1]</span>' +
+            '</div>' +
+            '<div style="min-width:300px;max-width: 670px; ">' +
+            '<span class="msg-title">评论了碎片:  </span>' +
+            '<span class="my-content-title">' +
+            '<a href="" target="_blank" class="">无题</a>' +
+            '</span>' +
+            '</div>' +
+            '</div>';
+    });
+
+    obj.append(htmlStr);
+    tools.warterfall(obj, $(".msg-comment-cpt"));
+}
+
+// 插入我的点赞
+function insertMyLike(data, obj) {
+
+}
+
+///////////////////////消息中心/////////////////////////
+
+// 插入评论及回复我的
+function insertCommentMe(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+
+        htmlStr += `<div class="msg msg-comm-reply-cpt special-msg">
+                <div class="m-user-icon">
+                    <a href="__PUBLIC__/index/user_info/user_info/${val.user_id}" target="_blank">
+    					<img src="__UPLOADS__/head/${val.avatar!=null ? val.avatar:'no-head.png'}" />
+    				</a>
+                </div>
+                <div class="m-info">
+                    <div class="m-user-name">
+                        <a href="__PUBLIC__/index/user_info/user_info/${val.user_id}" target="_blank">${val.nickname} : </a>
+                    </div>
+                </div>
+                <div class="focus-content msg-title">
+                    ${val.content}
+                    <span class="msg-date">${val.create_time}</span>
+                </div>
+               
+                <div style="min-width:300px;max-width: 670px;float:left;">
+                    <span class="msg-title">${val.action==3?'评论':'回复'}了${val.obj_type==1?'碎片':'文章'} :</span>
+                    <span class="my-content-title">
+    					<a href="__PUBLIC__/index/${val.obj_type==1?'mood/mood_detail/':'read/article_detail/'}${val.obj_id}" target="_blank" class="">${val.title}</a>
+    				</span>
+                </div>
+                <div class="msg-textarea" style="display: none;">
+                    <textarea name="" id="" maxlength="360" placeholder="请输入回复内容"></textarea>
+                    <div class="btn-group">
+                        <div class="btn-send">发送</div>
+                        <div class="btn-cancle">取消</div>
+                    </div>
+                </div>
+            </div>`;
+    })
+    /*回复的按钮 放在div.focus-content后
+     <div class="msg-others">
+        <span class="msg-reply">回复</span>
+     </div>
+    */
+    obj.append(htmlStr);
+}
+
+// 插入点赞我的
+function insertLikeMe(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+        htmlStr += `<div class="msg msg-like-cpt" >
+                <div class="m-user-icon">
+                    <a href="__PUBLIC__/index/user_info/user_info/${val.user_id}" target="_blank">
+    					<img src="__UPLOADS__/head/${val.avatar!=null ? val.avatar:'no-head.png'}" />
+    				</a>
+                </div>
+                <div class="m-info">
+                    <div class="m-user-name">
+                        <a href="__PUBLIC__/index/user_info/user_info/${val.user_id}" target="_blank">${val.nickname}</a>
+                        <span class="msg-date">${val.create_time}</span>
+                    </div>
+                    <div>
+                        <span class="likes-cpt likes m-like"></span>
+                        <span class="msg-title">喜欢了我的${val.obj_type==1?"碎片":(val.obj_type==2?"文章":"评论")}：</span>
+                        <span class="my-content-title">
+    						<a href="${val.obj_type==1?'__PUBLIC__/index/mood/mood_detail/':(val.obj_type==2?'__PUBLIC__/index/read/article_detail/':'javascript:void(0)')}${val.obj_id}" target="_blank">${val.title}</a>
+    					</span>
+                    </div>
+                </div>
+            </div>`;
+    })
+    obj.append(htmlStr);
+}
+
+// 插入关注我的
+function insertFocusMe(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+        htmlStr += `<div class="msg msg-focus-cpt">
+                <div class="m-user-icon">
+                    <a href="__PUBLIC__/index/user_info/user_info/${val.user_id}" target="_blank">
+    					<img src="__UPLOADS__/head/${val.avatar!=null ? val.avatar:'no-head.png'}" />
+    				</a>
+                </div>
+                <div class="m-info">
+                    <div class="m-user-name">
+                        <a href="__PUBLIC__/index/user_info/user_info/${val.user_id}" target="_blank">${val.nickname}</a>
+                    </div>
+                    <div>
+                        <span class="msg-title">关注了我</span>
+                    </div>
+                    <span class="btn-focus btn-focus-no" style="display: ${val.focusType==0 ? '' : 'none'};">关注</span>
+                    <span class="btn-focus btn-focus-yes" style="display: ${val.focusType==1 ? '' : 'none'};">已关注</span>
+                    <span class="btn-focus btn-focus-all" style="display: ${val.focusType==2 ? '' : 'none'};">互相关注</span>
+                    <input type="hidden" name="cur_user" value="{$Think.session.user_id}">
+                    <input type="hidden" name="be_followed_uid" value="${val.user_id}">
+                </div>
+            </div>`;
+    })
+    obj.append(htmlStr);
+}
+
+// 插入私信我的
+function insertLetterMe(data, obj) {
+    var htmlStr = "";
+
+    $.each(data, function(index, val) {
+        htmlStr += `<div class="msg msg-private-cpt" style="display: none;">
+                <div class="m-user-icon">
+                    <a href="" target="_blank">
+    					<img src="__UPLOADS__/head/no-head.png" />
+    				</a>
+                </div>
+                <div class="m-info">
+                    <div class="m-user-name">
+                        <a href="" target="_blank">诗之花绪</a>
+                        <span class="msg-date">[2018-01-01]</span>
+                    </div>
+                    <div>
+                        <span class="msg-title">私信内容</span>
+                    </div>
+                    <div class="msg-others">
+                        <span class="reply">
+    						<a href="" target="_blank">回复</a>
+    					</span>
+                    </div>
+                </div>
+            </div>`;
+    })
+    obj.append(htmlStr);
+    //tools.warterfall(obj, $(".msg-private-cpt"));
+}
+</script>
+{block name="jsFunc"}{/block}
+
+</html>

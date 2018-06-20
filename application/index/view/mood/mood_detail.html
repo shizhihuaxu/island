@@ -1,0 +1,435 @@
+{extend name="base" /} {block name="title" }碎片详情{/block} {block name="content" }
+<div class="container mood-detail">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="mood-info">
+                <div class="mood-info-title">
+                    <a href="{:url('index/user_info/user_info',['user_id'=>$user_info['user_id']])}">
+                        <img alt="head" class="user-head" src="__UPLOADS__/head/{$user_info['avatar']?$user_info['avatar']:'no-head.png'}"/>
+                    </a>
+                    <span class="nickname">
+                        <a href="{:url('index/user_info/user_info',['user_id'=>$user_info['user_id']])}">{$user_info['nickname']}</a>
+                    </span>
+                    <div class="time">
+                        {$infoArr["create_time"]}
+                        <div style="display:{$user_info['user_id']!=$Think.session.user_id ? 'none':'block'}">
+                            <div class="del-btn">删除</div>
+                        </div>
+                    </div>
+                </div>
+                {if condition="$infoArr['img'] neq ''"}
+                <img src="__UPLOADS__/mood/{$infoArr['img']}" class="mood-info-img" /> {/if}
+                <div class="mood-content">
+                    {$infoArr["content"]}
+                </div>
+                <div class='likes-cpt {$infoArr["is_like"]=="no" ? "" : "likes" }' id="like">
+                    {$infoArr["like"]}
+                </div>
+            </div>
+            <div class="mood-post-comment row">
+                <form role="form" id="form">
+                    <div class="col-lg-10">
+                        <div class="form-group">
+                            <!-- 碎片或文章id -->
+                            <input type="hidden" name="content_id" value="{$infoArr['fragment_id']}" />
+                            <!-- 评论者id 只能是当前登录用户-->
+                            <input type="hidden" name="user_id" value="{$Think.session.user_id}" />
+                            <!-- 作者id -->
+                            <input type="hidden" name="obj_user_id" value="{$user_info['user_id']}" />
+                            <textarea name="content" class="form-control" rows="5" placeholder="发表你的精彩评论啦" spellcheck="false"></textarea>
+                            <!-- type=0代表是碎片 type=1代表是文章 -->
+                            <input type="hidden" name="type" value="0" />
+                        </div>
+                    </div>
+                    <div class="form-group col-lg-2">
+                        <button type="submit" id="send-comment" class="btn btn-success">发布评论</button>
+                    </div>
+                </form>
+            </div>
+            <!-- 评论区 -->
+            <div class="mood-comments">
+                <div class="comment-title-cpt">
+                    <div>评论<span>(&nbsp;<i class="comm-count">{$comm_count ? $comm_count :0}</i>&nbsp;条)</span></div>
+                </div>
+                <div class="comment-list-group">
+                    <!-- 评论列表 -->
+                    {volist name="commArr" id="vo" empty="$empty"}
+                    <div class="comment-cpt">
+                        <div class="comment-user-icon">
+                            <a href="{:url('index/user_info/user_info',['user_id'=>$vo.user_id])}" target="_blank">
+                                <img src="__UPLOADS__/head/{$vo.user_avatar ? $vo.user_avatar : 'no-head.png'}">
+                            </a>
+                        </div>
+                        <div class="comment-info">
+                            <div class="comment-user-info">
+                                <a href="{:url('index/user_info/user_info',['user_id'=>$vo.user_id])}" target="_blank">{$vo.nickname}</a> {$vo.comm_time}
+                                <input type="hidden" name="comm_id" value="{$vo.comm_id}" />
+                                <span class="comment-reply">回复</span>
+                                <!-- 判断是否是当前用户 如果是 添加 show类-->
+                                <span class="comment-del {$vo.user_id==$Think.session.user_id ? 'show':''}">删除</span>
+                                <span class="comment-like {$vo.is_like=='no' ? '' : 'praise'}">
+                                    {$vo.like}
+                                    <input type="hidden" name="obj_user_id" value="{$vo.user_id}">
+                                </span>
+                            </div>
+                            <div class="comment-content">{$vo.content}</div>
+                            <div class="com-textarea hidden">
+                                <!-- hidden 点击回复的时候移除这个类 显示回复的框 -->
+                                <textarea name="content" maxlength="140" placeholder="请输入回复内容" spellcheck="false"></textarea>
+                                <div class="btn-group">
+                                    <div class="btn-send">发送</div>
+                                    <div class="btn-cancle">取消</div>
+                                </div>
+                            </div>
+                            <!-- 子评论列表 -->
+                            {volist name="vo['subArr']" id="sub" empty=""}
+                            <div class="comment-content-others">
+                                <a href="{:url('index/user_info/user_info',['user_id'=>$sub.user_id])}" target="_blank">{$sub.nickname}:</a> {$sub.content}
+                                <input type="hidden" name="comm_id" value="{$sub.comm_id}" />
+                                <span class="comment-del {$sub.user_id==$Think.session.user_id ? 'show':''}">删除</span> {/*
+                                <span class="comment-reply">回复</span>*/}
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                    {/volist}
+                    <!-- 评论列表 -->
+                </div>
+                <div class="no-comment yemian" style="display:none">暂时没有评论，快和小伙伴互动吧</div>
+                <div class="common-more-btn" style="display: none;">查看更多评论</div>
+                <div class="no-more-data" style="display: none;">-&nbsp;已加载全部&nbsp;-</div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 消息弹出框 -->
+<div>
+    <div class="Confirm" style="display: none;">
+        <span class="icon glyphicon glyphicon-info-sign"></span>
+        <div>删除的内容不可找回, 确认删除?</div>
+        <div class="btn-group" id="btn-group">
+            <div>取消</div>
+            <div>确认</div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+(function($) {
+
+    var user_id = $("input[name='user_id']").val(), //作者id
+        fragment_id = $("input[name='content_id']").val();
+
+    // 统计浏览量 不需要判断是否登录 只有增加 不用获取初始值
+    $.ajax({
+        type: "POST",
+        url: "{:url('/index/mood/mood_skip')}",
+        data: { "fragment_id": fragment_id }
+    });
+
+    // 删除自己发布的碎片
+    $(".del-btn").click(function() {
+        // 消息提示
+        $(".Confirm").css("display", "block");
+        $("#btn-group div").click(function() {
+            var res = $(this).text();
+            if (res == "确认") {
+
+                $.ajax({
+                    type: "POST",
+                    url: "{:url('/index/mood/mood_del')}",
+                    data: { "fragment_id": fragment_id },
+                    success: function(data) {
+                        console.log(data);
+                        if (data.msg == "success") {
+                            window.location.href = "{:url('index/user_info/user_info',['user_id'=>$Think.session.user_id])}";
+                        }
+                        if (data.msg == "error") {
+                            toastr.error("删除失败");
+                        }
+                    }
+                });
+            }
+            if (res == "取消") {
+                $(".Confirm").css("display", "none");
+            }
+        });
+    });
+
+    //对碎片点赞 更新点赞数量
+    $("#like").click(function() {
+        //0是取消点赞 1是点赞 
+        var isAdd = 1;
+
+        if (!isLogin) {
+            toastr.error("您还没有登录");
+            return false;
+        }
+
+        if (!$(this).hasClass("likes")) {
+            isAdd = 1;
+            $(this).addClass("likes");
+        } else {
+            $(this).removeClass("likes");
+            isAdd = 0;
+        }
+
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('/index/mood/mood_like')}",
+            data: { "fragment_id": fragment_id, "isAdd": isAdd, "obj_user_id": user_id },
+            dataType: "json",
+            success: function(data) {
+
+                if (data.msg === "success") {
+                    $("#like").html(data.likeNum);
+                } else if (data.msg === "error") {
+                    toastr.error("点赞失败！");
+                }
+            }
+        });
+    });
+
+    // 提交评论
+    $("#send-comment").click(function(e) {
+        e.preventDefault();
+
+        if (!isLogin) {
+            toastr.error("您还没有登录");
+            return false;
+        }
+        var text = $.trim($("textarea").val());
+
+        if (text.length == 0) {
+            toastr.error("您还没有填写任何内容");
+            return false;
+        }
+        if (text.length > 140) {
+            toastr.error("不能超过140字");
+            return false;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('/index/mood/mood_comment')}",
+            data: $('#form').serialize(),
+            dataType: "json",
+            success: function(data) {
+
+                if (data.msg === "success") {
+                    toastr.success("评论成功");
+
+                    $("textarea").val(""); //清空输入框
+                    $(".comm-count").text(data.comm_count); //更新评论条数
+                    var commInfo = data.commInfo,
+                        htmlStr = "",
+                        avatar = '{$Think.session.avatar!="" ? $Think.session.avatar:"no-head.png" }';; // 显示这条评论
+
+                    htmlStr += '<div class="comment-cpt">' +
+                        '<div class="comment-user-icon">' +
+                        '<a href="../../user_info/user_info/{$Think.session.user_id}" target="_blank">' +
+                        '<img src="__UPLOADS__/head/' + avatar + '">' +
+                        '</a>' +
+                        '</div>' +
+                        '<div class="comment-info">' +
+                        '<div class="comment-user-info">' +
+                        '<a href="../../user_info/user_info/{$Think.session.user_id}" target="_blank">{$Think.session.nickname}</a>' +
+                        commInfo.comm_time +
+                        '<input type="hidden" name="comm_id" value="' + commInfo.comm_id + '"/>' +
+                        '<span class="comment-reply">回复</span>' +
+                        '<span class="comment-del show">删除</span>' +
+                        '<span class="comment-like">' +
+                        commInfo.like +
+                        '<input type="hidden" name="obj_user_id" value="{$Think.session.user_id}"/>' +
+                        '</span>' +
+                        '</div>' +
+                        '<div class="comment-content">' + commInfo.content + '</div>' +
+                        '<div class="com-textarea hidden">' +
+                        '<textarea name="content" maxlength="140" placeholder="请输入回复内容" spellcheck="false"></textarea>' +
+                        '<div class="btn-group">' +
+                        '<div class="btn-send">发送</div>' +
+                        '<div class="btn-cancle">取消</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+
+                    $(".comment-list-group").prepend(htmlStr);
+
+                    if ($(".comment-cpt").length != 0) {
+                        $(".no-comment").css("display", "none"); //隐藏后台模板没有评论的提示
+                    };
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+
+        });
+    });
+    // 回复评论操作
+    $(".comment-list-group").on("click", ".comment-reply", function() {
+
+        if (!isLogin) {
+            toastr.error("请先登录");
+            return false;
+        }
+
+        var self = $(this),
+            comm_area = $(this).parent(".comment-user-info").siblings(".com-textarea"),
+            subComm = comm_area.children("textarea")
+        send = comm_area.find(".btn-send"),
+            cancle = comm_area.find(".btn-cancle");
+
+        if (comm_area.hasClass("hidden")) { //控制显隐
+            comm_area.removeClass("hidden");
+        } else {
+            comm_area.addClass("hidden");
+        }
+
+        comm_area.keyup(function() { //有内容时添加边框
+            if (subComm.val() != "") {
+                comm_area.addClass("has-value");
+            } else {
+                comm_area.removeClass("has-value");
+            }
+        });
+
+        send.unbind("click").click(function() { //发送评论回复
+            var comm_id = self.siblings("input[name='comm_id']").val(),
+                content = comm_area.children("textarea[name='content']").val(),
+                content = $.trim(content),
+                fragment_id = $("input[name='content_id']").val(),
+                reply = {
+                    "parent_comm_id": comm_id,
+                    "content": content,
+                    "article_mood_id": fragment_id,
+                    "user_id": user_id
+                };
+            if (content.length == 0) {
+                toastr.error("内容不能为空");
+                return false;
+            }
+            if (content.length > 140) {
+                toastr.error("字数超出限制!");
+                return false;
+            }
+            $.ajax({
+                type: "POST",
+                url: "{:url('/index/mood/comm_reply')}",
+                data: reply,
+                success: function(data) {
+                    comm_area.addClass("hidden");
+                    subComm.val(""); // 清空输入框
+                    comm_area.removeClass("has-value");
+
+                    if (data.msg === "success") {
+                        var replyInfo = data.replyInfo,
+                            htmlStr = "";
+                        $(".comm-count").text(replyInfo.comm_count); //更新评论条数
+
+                        htmlStr += '<div class="comment-content-others">' +
+                            '<a href="../../user_info/user_info/{$Think.session.user_id}" target="_blank">' + replyInfo.nickname + ':</a>' +
+                            replyInfo.content +
+                            '<input type="hidden" name="comm_id" value="' + replyInfo.comm_id + '"/>';
+                        if (replyInfo.user_id == user_id) {
+                            htmlStr += '<span class="comment-del show">删除</span></div>';
+                        } else {
+                            htmlStr += '<span class="comment-del">删除</span></div>';
+                        }
+                        self.parents(".comment-info").append(htmlStr);
+
+                    } else if (data.msg === "error") {
+                        toastr.error("回复失败！");
+                    }
+                },
+                error: function(XMLHttpRequest, textStatus, errorThrown) {
+                    //  console.log(XMLHttpRequest.status);
+                    //  console.log(XMLHttpRequest.readyState);
+                    // console.log(textStatus);
+
+                }
+            });
+
+        });
+
+        cancle.on("click", function() { //取消
+            comm_area.addClass("hidden");
+            subComm.val(""); // 清空输入框
+            comm_area.removeClass("has-value");
+        });
+
+
+    });
+
+
+    // 删除评论 
+    //级联 如果最顶层的评论被删除了  判断parentid为当前id的数量  存在时删除 软删除 remove=1？ 那么下面的所有评论都会被删除
+    //使用append等同类方法追加的元素 不会执行click事件 要使用on监听
+    $(".comment-list-group").on("click", ".comment-del", function() {
+        var self = $(this),
+            comm_id = self.siblings("input[name='comm_id']").val();
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('/index/mood/comm_del')}",
+            data: { "comm_id": comm_id },
+            dataType: "json",
+            success: function(data) {
+                if (data.msg === "success") {
+                    if (data.hasChild) {
+                        self.parents(".comment-cpt").remove(); //如果当前评论是顶层评论的话 删除当前评论和子评论
+                        $(".comm-count").text(data.count);
+                    } else {
+                        self.parent(".comment-content-others").remove();
+                    }
+
+                    //更新评论数量
+                    $(".comm-count").text(data.count);
+                    if (data.count == 0) { //提示没有评论
+                        $(".no-comment.yemian").css("display", "block");
+                    }
+                } else if (data.msg === "error") {
+                    toastr.error("删除失败！");
+                }
+            }
+        });
+    });
+    // 对于评论的点赞
+    $(".comment-list-group").on("click", ".comment-like", function() {
+        var isAdd = 1, //0是取消点赞 1是点赞 
+            comm_id = $(this).siblings("input[name='comm_id']").val(),
+            obj_user_id = $(this).find("input[name='obj_user_id']").val(),
+            self = $(this);
+
+        if (!isLogin) {
+            toastr.error("请先登录");
+            return false;
+        }
+
+        if (!$(this).hasClass("praise")) {
+            isAdd = 1;
+            $(this).addClass("praise");
+        } else {
+            $(this).removeClass("praise");
+            isAdd = 0;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "{:url('/index/mood/comm_like')}",
+            data: { "comm_id": comm_id, "isAdd": isAdd, "obj_user_id": obj_user_id },
+            dataType: "json",
+            success: function(data) {
+                if (data.msg === "success") {
+                    self.html(data.likeNum);
+                } else if (data.msg === "error") {
+                    toastr.error("点赞失败！");
+                }
+            }
+        });
+    })
+
+})(jQuery);
+</script>
+{/block}

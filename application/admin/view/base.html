@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        {block name="title"}{/block}
+    </title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/css/bootstrap.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/site.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/toastr.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/admin.css">
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,800,700,400italic,600italic,700italic,800italic,300italic" rel="stylesheet" type="text/css">
+    <script src="__STATIC__/js/jquery-2.1.4.min.js"></script>
+    <!-- <script src="__STATIC__/js/bootstrap.min.js"></script> -->
+    <script type="text/javascript" src="__STATIC__/js/site.min.js"></script>
+    <script src="__STATIC__/js/echarts.min.js"></script>
+    <script src="__STATIC__/js/toastr.min.js"></script>
+    <style type="text/css">
+        .panel-body{
+            min-height:400px;
+        }
+    </style>
+    {block name="style"} {/block}
+</head>
+
+<body>
+    {include file='/common/header'} {block name="content"}{/block} {include file='/common/footer'}
+</body>
+<!-- js脚本区 -->
+<script type="text/javascript">
+// 消息提示插件配置
+toastr.options = {
+    positionClass: "toast-top-center",
+    timeOut: "1500"
+};
+
+/**
+ * 分页
+ * count 总条数
+ * page 当前页
+ * pager=10, 每页显示
+ * rollPage=10  分页栏每页显示的页数
+ * @returns string
+ */
+function pageHtml(count, page, pager, rollPage) {
+    var pager = arguments[2] ? arguments[2] : 10;
+    var rollPage = arguments[3] ? arguments[3] : 10;
+    var htmlPage = '';
+
+    if (count > pager) {
+        //总页数
+        var pageAll = Math.ceil(count / pager);
+
+        if (page < 2) {
+            htmlPage += '<li class="prev"><a href="javascript:void(0)">';
+        } else {
+            htmlPage += '<li class="prev"><a href="javascript:void(0)" onClick="getList(' + (parseInt(page) - 1) + ')">';
+        }
+        htmlPage += 'PREV</a></li>';
+
+        //计算分页零时变量
+        var now_cool_page = rollPage / 2;
+        var now_cool_page_ceil = Math.ceil(now_cool_page);
+
+        //首页
+        if (pageAll > rollPage && (page - now_cool_page) >= 1) {
+            htmlPage += '<li><a href="javascript:void(0)" onClick="getList(1)">首页</a></li>';
+        }
+
+        var page_;
+        for (var i = 1; i <= rollPage; i++) {
+            if ((page - now_cool_page) <= 0) {
+                page_ = i;
+            } else if ((page + now_cool_page - 1) >= pageAll) {
+                page_ = pageAll - rollPage + i;
+            } else {
+                page_ = page - now_cool_page_ceil + i;
+            }
+            if (page_ > 0 && page_ != page) {
+                if (page_ <= pageAll) {
+                    htmlPage += '<li><a href="javascript:void(0)" onClick="getList(' + page_ + ')">' + page_ + '</a></li>';
+                } else {
+                    break;
+                }
+            } else {
+                if (page_ > 0 && pageAll != 1) {
+                    htmlPage += '<li class="active"><a href="javascript:void(0)">' + page_ + '</a></li>';
+                }
+            }
+        }
+
+        //尾页
+        if (pageAll > rollPage && (page + now_cool_page) < pageAll) {
+            htmlPage += '<li><a href="javascript:void(0)" onClick="getList(' + pageAll + ')">尾页</a></li>';
+        }
+
+        if (page < pageAll) {
+            htmlPage += '<li class="next"><a href="javascript:void(0)" onClick="getList(' + (parseInt(page) + 1) + ')">';
+            htmlPage += 'NEXT</a></li>';
+        } else {
+            htmlPage += '<li class="next"><a href="javascript:void(0)">';
+            htmlPage += 'NEXT</a></li>';
+        }
+
+    }
+    return htmlPage;
+}
+</script>
+{block name="jsFunc"}{/block}
+
+</html>

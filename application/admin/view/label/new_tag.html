@@ -1,0 +1,100 @@
+{extend name="base"/} {block name="title"}新增碎片标签{/block} {block name="style"}{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li><a href="javascript:void(0)">标签管理</a></li>
+                            <li><a href="javascript:void(0)">碎片标签管理</a></li>
+                            <li class="active"><span>新增碎片标签</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body tag_edit">
+                    <form id="form" role="form" class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-md-2 control-label">标签名称:</label>
+                            <div class="col-md-6">
+                                <input type="text" value="" name="name" spellcheck="false" autocomplete="off" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-md-2 control-label">背景图片:</label>
+                            <div class="col-md-6">
+                                <img id="bg" src="" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-offset-2 col-md-2">
+                                <p class="form-control-static">
+                                    <a class="btn btn-default" href="javascript:void(0);" id="set-bg">上传图片
+                                        <input type="file" name="img" id="img" style="opacity: 0;z-index: 10;margin-top:-25px;width:100%;"/>
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-offset-4 col-md-3">
+                                <button id="submit" type="submit" class="btn btn-info btn-block">新增</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+(function($) {
+    //设置图片 预览
+    $("input[name='img']").change(function() {
+
+        if (window.FileReader) {
+            var reader = new FileReader();
+            var file = document.getElementById("img").files[0];
+
+            reader.readAsDataURL(file);
+            reader.onloadend = function(e) {
+                var url = e.target.result;
+                $("#bg").attr("src", url);
+            }
+        } else {
+            toastr.error("您的浏览器不支持预览");
+        }
+    });
+
+    //保存设置 
+    $("#submit").click(function(e) {
+        e.preventDefault();
+        var name = $("input[name='name']").val(),
+            form = document.getElementById("form"),
+            formData = new FormData(form);
+
+        if ($.trim(name).length <= 0 || $.trim(name).length > 8) {
+            toastr.error("标签名称不能为空,不能超过8个字");
+            return false;
+        }
+
+        $.ajax({
+            url: "{:url('admin/label/add_tag')}",
+            type: "POST",
+            cache: false,
+            data: formData,
+            processData: false, //因为data值是FormData对象，不需要对数据做处理
+            contentType: false, //form上已经设置enctype
+            success: function(data) {
+                if (data.msg === "success") {
+                    toastr.success("新增标签成功");
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+})(jQuery);
+</script>
+{/block}

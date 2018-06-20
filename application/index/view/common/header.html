@@ -1,0 +1,65 @@
+{/*登录后页面公用头部*/}
+<div class="head">
+    <div class="navbar-header head-logo">
+        <a class="navbar-brand logo" href="{:url('/index/index/index')}"></a>
+    </div>
+    <div>
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="{:url('/index/index/index')}">首页</a></li>
+            <li><a href="{:url('/index/dynamics/index')}">动态</a></li>
+            <li><a href="{:url('/index/read/index')}">阅读</a></li>
+            <li><a href="{:url('/index/mood/index')}">碎片</a></li>
+             <li>
+               <form id="search-form" class="navbar-form navbar-left" role="search" action="{:url('/index/search/index')}" method="post">
+                    <div class="form-group">
+                        <input type="hidden" name="keyword">
+                        <input type="text" autocomplete="off" class="form-control search-input" placeholder="请输入关键字">
+                    </div>
+                    <a class="search-btn" href="javascript:void(null)"><i class="glyphicon glyphicon-search"></i></a>
+                </form>
+            </li>   
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="{:url('/index/read/edit')}" title="写文章"><span class="glyphicon glyphicon-pencil" ></span></a></li>
+            <li id="msg-count-list">
+                <a href="javascript:void(0);" title="消息">
+                    <span style="display: inline-block;width:40px;" class="glyphicon glyphicon-envelope"></span>
+                    <div class="msgnum" style="display: {$all_msg == 0 ? 'none' : 'inline-block'};">
+                        {$all_msg | num_format}
+                    </div>
+                </a>
+                <ul class="sub-menu" style="display: none;">
+                    <li>
+                        <a href="{:url('/index/user_info/user_info',['user_id'=>$Think.session.user_id,'infoType'=>34])}">
+                            评论<span class="comm-msg-count">{$comm_msg | num_format}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{:url('/index/user_info/user_info',['user_id'=>$Think.session.user_id,'infoType'=>2])}">
+                            喜欢<span class="like-msg-count">{$like_msg | num_format}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{:url('/index/user_info/user_info',['user_id'=>$Think.session.user_id,'infoType'=>5])}">
+                            粉丝<span class="focus-msg-count">{$focus_msg | num_format}</span>
+                        </a>
+                    </li>
+                    <!-- <li>
+                        <a href="{:url('/index/user_info/user_info',['user_id'=>$Think.session.user_id,'infoType'=>6])}">
+                                                私信<span>{$private_msg | num_format}</span>
+                                            </a>
+                    </li> -->
+                </ul>
+            </li>
+            <li>
+                <a href="{:url('/index/user_info/user_info',['user_id'=>$Think.session.user_id])}" title="{$Think.session.nickname}">
+                    <img class="user-head" src="__UPLOADS__/head/{$Think.session.avatar ? $Think.session.avatar : 'no-head.png'}"/>
+                </a>
+                <ul class="sub-menu" style="display: none;">
+                    <li><a href="{:url('/index/user_set/user_set')}">账号设置</a></li>
+                    <li><a href="{:url('/index/login/logout')}">退出</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>

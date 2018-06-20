@@ -1,0 +1,219 @@
+{extend name="base"/}
+{block name="title"}动态{/block}
+{block name="content"}
+<div class="container dynamics">
+	<div class="panel panel-default">
+	    <div class="panel-heading title-cpt">
+	        <h3 class="panel-title">
+	            最新动态&nbsp;&nbsp;|&nbsp;&nbsp;Lastest News
+	        </h3>
+	    </div>
+	</div>
+	<div class="panel panel-default feed-list">
+		{volist name="feedArr" id="vo"}
+	    <div class="panel-body feed-item">
+	    	<div class="feed-user-info">
+	    		<a href="{:url('index/user_info/user_info',['user_id'=>$vo.user_id])}">
+	    			<img src="__UPLOADS__/head/{$vo.avatar!='' ? $vo.avatar :'no-head.png'}"/>
+	    		</a>
+	    		<span class="nickname">
+	    			<a href="{:url('index/user_info/user_info',['user_id'=>$vo.user_id])}" target="_blank">{$vo.nickname}</a>
+	    		</span>
+	    		<span style="font-size:12px;font-weight: 200;">
+	    			发布了{$vo.obj_type==1 ? '一个碎片' : '一篇文章'}
+	    		</span>
+	    		<span class="time">{$vo.create_time | redate}</span>
+	    	</div>
+	    	{if condition="$vo.obj_type==2"}
+	    		<div class="feed-title">
+		    		<a href="{:url('index/read/article_detail',['article_id'=>$vo['obj_id']])}" target="_blank">{$vo.title}</a>
+		    	</div>
+			{else /}
+			{/if}
+	    	<div class="feed-content {$vo.obj_type ==1 ? 'feed-mood' : 'feed-article'}">
+			{switch name="$vo.obj_type"}
+				{case value="1"}
+	    		<!-- 碎片模板 -->
+    			<div class="mood-content">
+    				<a href="{:url('index/mood/mood_detail',['fragment_id'=>$vo.obj_id])}" target="_blank">{$vo.content}</a>
+    			</div>
+    			<div class="mood-img" style="display: {$vo.img!='' ? 'block' :'none'};">
+    				<a href="{:url('index/mood/mood_detail',['fragment_id'=>$vo.obj_id])}" target="_blank">
+	    				<img src="__UPLOADS__/mood/{$vo.img}" width="100%" />
+	    			</a>
+    			</div>
+    			<div class="feed-others">	    				
+                    {$vo.skip}次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:{$vo.comm_num}&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:{$vo.like}
+                    <div class="feed-del" style="display: {$vo.user_id==$Think.session.user_id ? 'block' :'none'};">
+                        <div class="del-btn">删除</div>
+                    </div>
+	    		</div>
+				<!-- 碎片模板结束 -->
+				{/case}
+	    		{case value="2"}
+	    		<!-- 文章模板 -->
+	    		<div class="article-box {$vo.img!='' ? '' :'article-no-img'}">
+	    			<!-- article-no-img/active-img(display:none) -->
+	    			<div class="article-content">
+	    				{$vo.excerpt} &#8230;
+                        <span class="view-all">
+                        	<a href="{:url('index/read/article_detail',['article_id'=>$vo['obj_id']])}" target="_blank">VIEW ALL<span class="glyphicon glyphicon-play"></span></a>
+                        </span>
+                        
+	    			</div>
+	    			<div class="feed-others">	    				
+                        {$vo.skip}次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:{$vo.comm_num}&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:{$vo.like}
+                        <div class="feed-del" style="display: {$vo.user_id==$Think.session.user_id ? 'block' :'none'};">
+                        	<div class="del-btn">删除</div>
+                        </div>
+	    			</div>
+	    		</div>
+	    		<div class="active-img" style="display: {$vo.img!='' ? 'block' :'none'};">
+	    			<a href="" target="_blank">
+	    				<img src="{$vo.img}" width="100%" />
+	    			</a>
+	    		</div>
+				<!-- 文章模板结束 -->
+				{/case}
+			{/switch}
+	    	</div>
+	    </div>
+	    {/volist}
+		<div class="load-more"></div>
+		<div class="look-more" onclick="getMore();">查看更多</div>
+		<input type="hidden" id="page"/>
+	</div>
+</div>
+{/block}
+{block name="jsFunc"}
+<script type="text/javascript">
+	$(function(){
+		// 查看更多按钮初始化 每次获取10条数据
+		if ({$feedArr | count} < 10) {
+			if({$feedArr | count} ==0){
+				$('.look-more').text('暂无内容...').removeAttr('onclick');
+			}else{
+				$('.look-more').hide();
+			}
+			
+		} else {
+			$('#page').val(10);
+		}
+
+	})
+	// 查看更多动态
+	function getMore(){
+		var page = $("#page").val();
+
+		$('.look-more').text('loading...').removeAttr('onclick');
+
+		$.getJSON("{:url('index/dynamics/get_more')}",{'page' : page},function(data){
+			console.log(data);
+			if (data.feedArr.length > 0) {
+				var list  = data.feedArr,
+					count = data.count,
+					str   = "";
+				// begin
+				$.each(list,function(index,val){
+
+					str+='<div class="panel-body feed-item"><div class="feed-user-info">';
+					str+='<a href="__PUBLIC__/index/user_info/user_info/'+val.user_id+'" target="_blank">';
+
+	    			if(val.avatar!=""){
+	    				str+= '<img src="__UPLOADS__/head/'+val.avatar+'"/>';
+	    			}else{
+	    				str+= '<img src="__UPLOADS__/head/no-head.png"/>';
+	    			}
+
+			    	str+='</a><span class="nickname">';
+			    	str+='<a href="__PUBLIC__/index/user_info/user_info/'+val.user_id+'" target="_blank">'+val.nickname+'</a>';
+			    	str+='</span><span style="font-size:12px;font-weight: 200;">发布了';
+
+		    		if(val.obj_type==1){
+		    			str+="一个碎片";
+		    		}
+		    		if(val.obj_type==2){
+		    			str+="一篇文章";
+		    		}
+
+			    	str+='</span><span class="time">'+val.create_time+'</span></div>';
+
+			    	if(val.obj_type==1){
+			    		str+='<div class="feed-content feed-mood"><div class="mood-content">';
+				    	str+='<a href="__PUBLIC__/index/mood/mood_detail/'+val.obj_id+'" target="_blank">'+val.content+'</a></div>';
+
+				    	if(val.img!=""){
+				    		str+='<div class="mood-img" style="display: block;">';
+				    	}else{
+				    		str+='<div class="mood-img" style="display: none;">';
+				    	}
+
+				    	str+='<a href="__PUBLIC__/index/mood/mood_detail/'+val.obj_id+'" target="_blank">';
+					    str+='<img src="__UPLOADS__/mood/'+val.img+'" width="100%" /></a></div>';
+				    	str+='<div class="feed-others">'+val.skip+'次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:';
+				        str+= val.comm_num+'&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:'+val.like;
+
+				        if(val.user_id=={$Think.session.user_id}){
+				        	str+='<div class="feed-del" style="display: block;">';
+				        }else{
+				        	str+='<div class="feed-del" style="display: none;">';
+				        }
+
+				        str+='<div class="del-btn">删除</div></div></div></div></div>';
+			    	}	
+
+			    	if(val.obj_type==2){
+			    		str+='<div class="feed-title">';
+				    	str+='<a href="__PUBLIC__/index/read/article_detail/'+val.obj_id+'" target="_blank">'+val.title+'</a></div>';
+				    	str+='<div class="feed-content feed-article">';
+
+			    		if(val.img!=""){
+			    			str+='<div class="article-box">';
+			    		}else{
+			    			str+='<div class="article-box article-no-img">';
+			    		}
+
+		    			str+='<div class="article-content">'+ val.excerpt +'<span class="view-all">';
+		                str+='<a href="__PUBLIC__/index/read/article_detail/'+val.obj_id+'" target="_blank">VIEW ALL';
+		                str+='<span class="glyphicon glyphicon-play"></span></a></span></div>';
+				    		
+				    		
+		    			str+='<div class="feed-others">' +val.skip+'次阅读&nbsp;&nbsp;|&nbsp;&nbsp;评论:';
+	                    str+= val.comm_num+'&nbsp;&nbsp;|&nbsp;&nbsp;喜欢:'+val.like ;
+
+	                    if(val.user_id=={$Think.session.user_id}){
+				        	str+='<div class="feed-del" style="display: block;">';
+				        }else{
+				        	str+='<div class="feed-del" style="display: none;">';
+				        }
+
+	                    str+='<div class="del-btn">删除</div></div></div></div>';
+
+	    				if(val.img!=""){
+	    					str+='<div class="active-img" style="display: block;">';
+	    				}else{
+	    					str+='<div class="active-img" style="display: none;">';
+	    				}
+
+	    				str+='<a href="" target="_blank"><img src="'+val.img+'" width="100%" /></a></div></div></div>';
+			    	}				
+				})
+				// end
+				$(str).appendTo(".load-more");
+
+				$('#page').val(parseInt(page) + parseInt(count));
+
+				if (parseInt(count) < 10) {
+					$(".look-more").text("暂无内容");
+				} else {
+					$(".look-more").text("查看更多").attr("onclick", "getMore()");
+				}
+
+			}else{
+				$(".look-more").text("暂无内容");
+			}
+
+		})
+	}
+</script>
+{/block}

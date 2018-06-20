@@ -1,0 +1,106 @@
+{extend name="base"/} {block name="title"}阅读{/block} {block name="content"}
+<div class="container read">
+    <div class="mycarousel" data-setting='{
+								"height":300,
+								"width":1010,
+								"imgHeight":300,
+								"imgWidth":600,
+								"verticalAlign":"middle",
+								"scale":0.9,
+								"speed":500,
+								"autoPlay":true,
+								"delay":2000
+								}'>
+        {/*verticalAlign:middle|top|bottom autoPlay 是否自动播放 delay自动播放间隙*/}
+        <div class="prev-next-btn prev"></div>
+        <ul class="carousel-list">
+            <li class="carousel-item"><a href="{:url('index/read/article_detail',['article_id'=>1])}"><img src="__STATIC__/imgs/lb2.JPG"></a></li>
+            <li class="carousel-item"><a href="{:url('index/read/article_detail',['article_id'=>2])}"><img src="__STATIC__/imgs/lb3.jpg"></a></li>
+            <li class="carousel-item"><a href="{:url('index/read/article_detail',['article_id'=>3])}"><img src="__STATIC__/imgs/lb4.jpg"></a></li>
+            <li class="carousel-item"><a href="{:url('index/read/article_detail',['article_id'=>4])}"><img src="__STATIC__/imgs/lb5.jpg"></a></li>
+        </ul>
+        <div class="prev-next-btn next"></div>
+    </div>
+    <!-- 文章分类 -->
+    <div class="panel panel-default">
+        <div class="panel-heading title-cpt">
+            <h3 class="panel-title">
+		            分类&nbsp;&nbsp;|&nbsp;&nbsp;Classification
+		        </h3>
+        </div>
+        <div class="panel-body">
+            {volist name="classifyArr" id="vo"}
+            <div class="article-type-cpt">
+                <a href="{:url('index/read/article_sort',['classify'=>$vo['classify_id']])}">
+			    			<img src="__UPLOADS__/classifyImg/{$vo.img}"/>
+			    			<span class="type-bg"></span>
+			    			<span class="type-title">{$vo.name}</span>
+			    			<span class="type-des">{$vo.en_desc}/{$sortCount[$i-1]}篇</span>
+			    		</a>
+            </div>
+            {/volist}
+        </div>
+    </div>
+    <!-- 热门文章 -->
+    <div class="panel panel-default">
+        <div class="panel-heading title-cpt">
+            <h3 class="panel-title">
+		            热门文章&nbsp;&nbsp;|&nbsp;&nbsp;Hot Articles
+		        </h3>
+        </div>
+    </div>
+    <!-- 热门文章列表 -->
+    <div class="article-list panel panel-default">
+        <input type="hidden" name="articleNum" value="{$artCount}">
+    </div>
+    <!-- 加载动画 -->
+    <div class="loading" style="display:none;"></div>
+    <div class="no-more-data" style="display:none;">-&nbsp;已加载全部&nbsp;-</div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript" src="__STATIC__/js/carousel.js"></script>
+<script type="text/javascript">
+;
+(function($) {
+    // 旋转木马轮播
+    myCarousel.init($(".mycarousel"));
+
+    //懒加载
+    var gPageSize = 5, //每次加载的数据量
+        i = 1, //设置当前页数，全局变量
+        articleNum = $("input[name='articleNum']").val(),
+        pages = Math.ceil(articleNum / gPageSize);
+
+    function getData() {
+
+        if (i > pages) {
+            $(".loading").hide();
+            $(".no-more-data").show();
+            return false;
+        }
+
+        $.ajax({
+            type: "post",
+            url: "{:url('index/read/lazyload')}",
+            data: { "pageSize": gPageSize, "pageNum": i, "orderBy": "create_time desc" },
+            success: function(data) {
+                $(".loading").hide();
+                if (data.length > 0) {
+                    insertArticle(data, $(".article-list"));
+                }
+            },
+            beforeSend: function() {
+                $(".loading").show();
+            },
+            error: function() {
+                $(".loading").hide();
+            }
+        });
+        i++; //页码自动增加，保证下次调用时为新的一页。 
+    }
+    getData(); //初始化第一页数据
+    tools.lazyLoad(getData);
+
+})(jQuery);
+</script>
+{/block}

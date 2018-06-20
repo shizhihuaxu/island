@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>写作|阅读</title>
+    <link rel="stylesheet" type="text/css" href="__STATIC__/css/bootstrap.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/font-awesome.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/toastr.min.css">
+    <link rel="stylesheet" href="__STATIC__/css/main.css">
+    <script src="__STATIC__/js/jquery-2.1.4.min.js"></script>
+    <script src="__STATIC__/js/bootstrap.min.js"></script>
+    <script src="__STATIC__/js/toastr.min.js"></script>
+    <script src="__STATIC__/plugins/ckeditor/ckeditor.js"></script>
+    <script src="__STATIC__/plugins/ckeditor/adapters/jquery.js"></script>
+    <script src="__STATIC__/plugins/ckfinder/ckfinder.js"></script>
+</head>
+
+<body>
+    <div class="container-fluid editor" style="background: #fff;">
+        <!-- 侧边导航栏 -->
+        <div class="sidebar">
+            <div class="menu-item">
+                <a class="item" href="{:url('/index/index/index')}" target="_blank">首页</a>
+                <a class="item" href="{:url('/index/read/index')}" target="_blank">阅读</a>
+                <a class="item" href="{:url('/index/mood/index')}" target="_blank">碎片</a> {if condition="$Think.session.user_id neq ''"}
+                <a class="item" href="{:url('/index/login/logout')}" target="_blank">退出</a> {/if}
+            </div>
+            {if condition="$Think.session.user_id neq ''"}
+            <a target="_blank" href="{:url('/index/user_info/user_info',['user_id'=>$Think.session.user_id])}" title="{$Think.session.nickname}">
+                <img class="avatar" src="__UPLOADS__/head/{$Think.session.avatar ? $Think.session.avatar:'no-head.png'}" alt=""/>
+            </a> {else /}
+            <a target="_blank" href="{:url('/index/login/sign_in',['user_id'=>$Think.session.user_id])}">
+                <img class="avatar" src="" alt="未登录"/>
+            </a> {/if}
+        </div>
+        <!-- 正在编辑的文章列表 -->
+        <div class="myCollection">
+            <div class="create">
+                <span class="glyphicon glyphicon-plus"></span> 新建文章
+            </div>
+            <!-- 未发布的文章列表 -->
+            <div class="article-list">
+                <div class="article-items active">
+                    <div class="article-item">
+                        <div class="item-title">请输入文章标题</div>
+                        <span class="del glyphicon glyphicon-trash" title="删除"></span>
+                    </div>
+                </div>
+                <!-- 草稿列表 -->
+                {volist name="$draft_list" id="vo"}
+                <div class="article-items">
+                    <div class="article-item">
+                        <div class="item-title">{$vo.title}</div>
+                        <span class="del glyphicon glyphicon-trash" title="删除"></span>
+                        <!-- <span class="publish glyphicon glyphicon-send" title="立即发布"></span> -->
+                        <input type="hidden" name="article_id" value="{$vo.article_id}" />
+                    </div>
+                </div>
+                {/volist}
+            </div>
+        </div>
+        <!-- 文章编辑区 -->
+        <div class="articleContent">
+            <form>
+            <div class="ueditoButton">
+                <span class="preview" id="preview">预览</span>
+                <input type="hidden" name="update_article_id" value="{$update_article_id}" />
+                <span id="publish">立即发布</span>
+            </div>
+            <div class="article-title">
+                <div>
+                    <input type="text" name="title" maxlength="20" value="{$infoArr.title ? $infoArr.title:'请输入文章标题'}" autocomplete="off" spellcheck="false">
+                </div>
+                <!-- 字数统计 -->
+                <div class="titleWord"><span>0</span>/20</div>
+            </div>
+            <hr class="articleTitleHr">
+            <div class="article-type">
+                <!-- 选择分类 -->
+                <div class="addTags">
+                    <input type="hidden" name="classify_id" value="{$infoArr.classify?$infoArr.classify:''}">
+                    <span class="action-title tag-icon">{$infoArr.classify_name? $infoArr.classify_name:'选择分类'}</span>
+                    <span class="glyphicon glyphicon-chevron-down" style="color:#78bc85;font-size:12px;"></span>
+                </div>
+                <div class="panel panel-default  tag-drop" style="display:none;">
+                    <div class="row">
+                        {volist name="classifyArr" id="vo"}
+                        <div class="col-md-4 tag-cpt" data-classify_id="{$vo.classify_id}">
+                            <a>{$vo.name}</a>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+                <!-- 选择分类 -->
+            </div>
+            <!-- 编辑器 外面要有表单 保存按钮才会起作用-->
+            
+                <textarea rows="30" cols="50" name="content">
+                    {$infoArr.content? $infoArr.content:''}
+                </textarea>
+             </form>
+        </div>
+        <!-- 删除草稿或文章消息弹出框 -->
+        <div>
+            <div class="Confirm delete" style="display: none;">
+                <span class="icon glyphicon glyphicon-info-sign"></span>
+                <div>确定删除该文章？</div>
+                <div class="btn-group"">
+                    <div>取消</div>
+                    <div>确认</div>
+                </div>
+            </div>
+        </div>
+        <!-- 确认保存草稿消息弹出框 -->
+        <!-- 消息弹出框 -->
+        <div>
+            <div class="Confirm save" style="display: none;">
+                <span class="icon glyphicon glyphicon-info-sign"></span>
+                <div>删除的内容不可找回, 确认删除?</div>
+                <div class="btn-group">
+                    <div>取消</div>
+                    <div>确认</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript">
+;
+(function($) {
+    //toastr配置
+    toastr.options = {
+        positionClass: "toast-top-center",
+        timeOut: "1000"
+    };
+
+    // 编辑器设置
+    var myeditor = CKEDITOR.replace('content', {
+        filebrowserBrowseUrl: "__STATIC__/plugins/ckfinder/ckfinder.html",
+        filebrowserImageBrowseUrl: '__STATIC__/plugins/ckfinder/ckfinder.html?Type=Images',
+        filebrowserImageUploadUrl: '__STATIC__/plugins/ckfinder/core/connector/php/connector.php?command=QuickUpload&type=Images'
+    });
+    CKFinder.setupCKEditor(myeditor, "__STATIC__/plugins/ckfinder/");
+
+    // 添加分类
+    $(".addTags").click(function(e) {
+        e.stopPropagation(); //要阻止事件冒泡到body 从而触发body的click事件
+        $(".tag-drop").toggle();
+    });
+    $(".tag-cpt").click(function() {
+        var classify = $(this).text();
+        classify_id = $(this).data("classify_id");
+        $("input[name='classify_id']").val(classify_id);
+
+        $(".tag-icon").text(classify);
+        $(".tag-drop").hide();
+    });
+    $("html,body").click(function(e) {
+        $(".tag-drop").hide();
+    })
+
+
+    // 新建文章  保存正在编辑的内容
+    $(".create").click(function() {
+        var htmlStr = "",
+            img = "",
+            update_article_id ="",              //可能是编辑发布过的文章，可能是编辑保存过的草稿，也可能是新建的文章
+            user_id = "{$Think.session.user_id}",
+            update_article_id = $("input[name='update_article_id']").val(),
+            title = $("input[name='title']").val(),
+            classify_id = $("input[name='classify_id']").val(),
+            content = myeditor.getData(),
+            excerpt = myeditor.document.getBody().getText(); //生成摘要
+
+        title = $.trim(title); //数据处理
+        excerpt = $.trim(excerpt);
+        excerpt = excerpt.replace(/\s/gi, '');
+        excerpt = excerpt.slice(0, 60);
+        content.replace(/<img [^>]*src=['"]([^'"]+)[^>]*>/i, function(match, capture) {
+            img = capture || "";
+        });
+
+        if (classify_id == "") {
+            toastr.error("请选择分类");
+            return false;
+        }
+        if (title == "请输入文章标题" || title == "") {
+            toastr.error("请输入文章标题");
+            return false;
+        }
+        if (excerpt == "") {
+            toastr.error("文章内容不能为空");
+            return false;
+        }
+
+        //发送到后端 is_publish为1 返回插入的id
+        $.ajax({
+            type: "POST",
+            url: "{:url('index/read/draft_saved')}",
+            data: { 
+                "update_article_id":update_article_id,
+                "user_id": user_id, 
+                "classify": classify_id, 
+                "title": title, 
+                "excerpt": excerpt, 
+                "content": content 
+            },
+            success: function(data) {
+
+                if (data.msg == "success") {
+                    if(data.status == 2){
+                    //获取插入id
+                        var article_id = data.article_id;
+                        htmlStr += '<div class="article-items">' +
+                            '<div class="article-item">' +
+                            '<div class="item-title">' +
+                            '<span class="noIntroduced">[未发布]</span>' +
+                            title +
+                            '</div>' +
+                            '<span class="del glyphicon glyphicon-trash" title="删除"></span>' +
+                            // '<span class="publish glyphicon glyphicon-send" title="立即发布"></span>' +
+                            '<input type="hidden" name="article_id" value="' + article_id + '"/>' +
+                            '</div>' +
+                            '</div>';
+
+                        $(".article-list").append(htmlStr);
+                    }
+                    //清空数据
+                    $("input[name='title']").val("请输入文章标题");
+                    $(".tag-icon").text("选择分类");
+                    $("input[name='classify_id']").val("");
+                    $("input[name='update_article_id']").val("");
+                    myeditor.setData("");
+
+                }
+                if (data.msg == "error") {
+                    toastr.error("保存失败");
+                    return false;
+                }
+            }
+        });
+
+    });
+
+    // 标题字数统计
+    var len = 0;
+
+    $("input[name='title']").keyup(function() {
+        var val = $(this).val(),
+            len = $.trim(val).length;
+        $(".titleWord span").text(len);
+        if (len > 30) {
+            $(this).val(val.slice(0, 20));
+            $(".titleWord span").text(20);
+        }
+    });
+
+    // 预览
+    $("#preview").click(function() {
+
+        var htmlStr = "",
+            img = "",
+            update_article_id = $("input[name='update_article_id']").val(),
+            user_id = "{$Think.session.user_id}",
+            title = $("input[name='title']").val(),
+            classify_id = $("input[name='classify_id']").val(),
+            content = myeditor.getData(),
+            excerpt = myeditor.document.getBody().getText(); //生成摘要
+
+
+        title = $.trim(title); //数据处理
+        excerpt = $.trim(excerpt);
+        excerpt = excerpt.replace(/\s/gi, '');
+        excerpt = excerpt.slice(0, 60);
+        content.replace(/<img [^>]*src=['"]([^'"]+)[^>]*>/i, function(match, capture) {
+            img = capture;
+        });
+
+        if (classify_id == "") {
+            toastr.error("请选择分类");
+            return false;
+        }
+        if (title == "请输入文章标题" || title == "") {
+            toastr.error("请输入文章标题");
+            return false;
+        }
+        if (excerpt == "") {
+            toastr.error("文章内容不能为空");
+            return false;
+        }
+
+        htmlStr = $("<form id='form' target='_blank' method='POST' action=\"{:url('index/read/preview')}\">" +
+            '<input type="hidden" name="update_article_id" value="' + update_article_id + '"/>' +
+            '<input type="hidden" name="user_id" value="' + user_id + '"/>' +
+            '<input type="hidden" name="classify" value="' + classify_id + '"/>' +
+            '<input type="hidden" name="title" value="' + title + '"/>' +
+            '<input type="hidden" name="excerpt" value="' + excerpt + '"/>' +
+            '<input type="hidden" name="img" value="' + img + '"/>' +
+            "<input type='hidden' name='content' value='" + content + "'/>" +
+            '</form>');
+        //content中会生成带属性的html标签，是用双引号包裹的 所以这里的value值要用单引号包裹 否则就或导致缺失
+        htmlStr.appendTo("body").submit().remove();
+
+    })
+
+    // 发布文章
+    $("#publish").click(function() {
+
+        var htmlStr = "",
+            img = "",
+            update_article_id = $("input[name='update_article_id']").val(),
+            user_id = "{$Think.session.user_id}",
+            title = $("input[name='title']").val(),
+            classify_id = $("input[name='classify_id']").val(),
+            content = myeditor.getData(),
+            excerpt = myeditor.document.getBody().getText(); //生成摘要
+
+
+        title = $.trim(title); //数据处理
+        excerpt = $.trim(excerpt);
+        excerpt = excerpt.replace(/\s/gi, '');
+        excerpt = excerpt.slice(0, 60);
+        content.replace(/<img [^>]*src=['"]([^'"]+)[^>]*>/i, function(match, capture) {
+            img = capture;
+        });
+
+        if (classify_id == "") {
+            toastr.error("请选择分类");
+            return false;
+        }
+        if (title == "请输入文章标题" || title == "") {
+            toastr.error("请输入文章标题");
+            return false;
+        }
+        if (excerpt == "") {
+            toastr.error("文章内容不能为空");
+            return false;
+        }
+
+        htmlStr = $("<form id='form' method='POST' action=\"{:url('index/read/publish')}\">" +
+            '<input type="hidden" name="update_article_id" value="' + update_article_id + '"/>' +
+            '<input type="hidden" name="user_id" value="' + user_id + '"/>' +
+            '<input type="hidden" name="classify" value="' + classify_id + '"/>' +
+            '<input type="hidden" name="title" value="' + title + '"/>' +
+            '<input type="hidden" name="excerpt" value="' + excerpt + '"/>' +
+            '<input type="hidden" name="img" value="' + img + '"/>' +
+            "<input type='hidden' name='content' value='" + content + "'/>" +
+            '</form>');
+        //content中会生成带属性的html标签，是用双引号包裹的 所以这里的value值要用单引号包裹 否则就或导致缺失
+
+        htmlStr.appendTo("body").submit().remove();
+        $("input[name='title']").val("");
+        $(".tag-icon").text("");
+        myeditor.setData("");
+
+    });
+
+    // 编辑草稿 
+    $(".article-list").on("click", ".article-items", function() {
+        var article_id = $(this).find('input[name="article_id"]').val();
+        $("input[name='update_article_id']").val(article_id); //更新update_article_id
+
+        $(this).addClass("active").siblings(".article-items").removeClass("active");
+
+        // 获取文章内容填充进来
+        $.ajax({
+            type: "POST",
+            url: "{:url('index/read/draft_edit')}",
+            data: { "article_id": article_id },
+            success: function(data) {
+
+                if (data.msg == "success") {
+                    $("input[name='is_publish']").val(data.infoArr.is_publish); //更新is_publish
+                    //填充编辑器
+                    var title = data.infoArr.title,
+                        classify_id = data.infoArr.classify,
+                        classify_name = data.infoArr.classify_name,
+                        content = data.infoArr.content;
+
+                    $("input[name='title']").val(title);
+                    $("input[name='classify_id']").val(classify_id);
+                    $(".tag-icon").text(classify_name);
+                    myeditor.setData(content);
+
+                }
+                if (data.msg == "error") {
+                    toastr.error("获取数据失败");
+                }
+            }
+        });
+
+    })
+
+
+
+    // 删除草稿
+    $(".article-list").on("click", ".del", function() {
+        var that = $(this);
+        $(".delete").css("display", "block");
+        var article_id = $(this).siblings('input[name="article_id"]').val();
+
+        $(".save .btn-group div").click(function() {
+            var res = $(this).text();
+            if (res == "确认") {
+                $.ajax({
+                    type: "POST",
+                    url: "{:url('index/read/draft_del')}",
+                    data: { "article_id": article_id },
+                    success: function(data) {
+                        if (data.msg == "success") {
+                            $(".delete").css("display", "none");
+                            that.parents(".article-items").remove();
+                            toastr.success("删除成功");
+                        }
+                        if (data.msg == "error") {
+                            toastr.error("删除失败");
+                        }
+                    }
+                });
+            }
+            if (res == "取消") {
+                $(".delete").css("display", "none");
+            }
+        });
+    });
+
+
+})(jQuery)
+</script>
+
+</html>

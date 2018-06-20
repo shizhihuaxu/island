@@ -1,0 +1,26 @@
+{/*未登录页面公用头部*/}
+<div class="head">
+	<div class="navbar-header head-logo">
+        <a class="navbar-brand logo" href="{:url('/index/index/index')}"></a>
+    </div>
+    <div>
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="{:url('/index/index/index')}">首页</a></li>
+            <li><a href="{:url('/index/read/index')}">阅读</a></li>
+            <li><a href="{:url('/index/mood/index')}">碎片</a></li>
+            <li>
+               <form id="search-form" class="navbar-form navbar-left" role="search" action="{:url('/index/search/index')}" method="post">
+                    <div class="form-group">
+                        <input type="hidden" name="keyword">
+                        <input type="text" autocomplete="off" class="form-control search-input" placeholder="请输入关键字">
+                    </div>
+                    <a class="search-btn" href="javascript:void(null)"><i class="glyphicon glyphicon-search"></i></a>
+                </form>
+            </li>            
+        </ul>
+        <ul class="nav navbar-nav navbar-right"> 
+        	<!-- <li><a href="{:url('/index/read/edit')}" title="写文章"><span class="glyphicon glyphicon-pencil" ></span></a></li> -->
+            <li><a href="{:url('/index/login/sign_in')}" title="登录"><span class="glyphicon glyphicon-user" ></span> </a></li> 
+        </ul>          
+    </div>
+</div>

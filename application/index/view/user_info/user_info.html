@@ -1,0 +1,486 @@
+{extend name="base"/} {block name="title"}个人信息{/block} {block name="content"}
+<div class="container user-info" style="padding:0 50px;">
+    <div class="user-base-content">
+        <!--  基本信息 -->
+        <div class="user-info-box">
+            <div class="user-icon-group">
+                <div class="user-icon">
+                    <img src="__UPLOADS__/head/{$user_info.avatar ? $user_info.avatar : 'no-head.png'}">
+                </div>
+            </div>
+            <div class="user-info-detail">
+                <div class="user-name">
+                    <span>{$user_info.nickname}</span>
+                    <input type="hidden" name="cur_user" value="{$user_info.user_id}"> {if condition="($user_info.user_id != $Think.session.user_id)"}
+                    <!-- 判断是否已经关注过 判断是否是互相关注 决定将哪个的display none-->
+                    <span class="btn-focus btn-focus-no" style="display: {$focusType==0 ? '' : 'none'};">关注</span>
+                    <span class="btn-focus btn-focus-yes" style="display: {$focusType==1 ? '' : 'none'};">已关注</span>
+                    <span class="btn-focus btn-focus-all" style="display: {$focusType==2 ? '' : 'none'};">互相关注</span>
+                    <input type="hidden" name="be_followed_uid" value="{$user_info.user_id}"> {/if}
+                </div>
+                <div class="user-des">{$user_info.desc!=""? $user_info.desc :"这是一个还没有简介的岛主~ "}</div>
+                <div class="user-others">
+                    <a data-role="follower">{$countArr["follower"]}<br><span>粉丝</span></a>
+                    <a data-role="following">{$countArr["following"]}<br><span>关注</span></a>
+                    <input type="hidden" name="followerNum" value="{$countArr['follower']}">
+                    <input type="hidden" name="followingNum" value="{$countArr['following']}">
+                    <a>{$user_info.visit}<br><span>访客量</span></a>
+                </div>
+            </div>
+        </div>
+        <!-- 个人中心 当前登录用户可读 -->
+        {if condition="($user_info.user_id == $Think.session.user_id)"}
+        <div class="user-menu">
+            <div class="type-title-cpt">
+                <span class="{$infoType == 1 ?'active' :''}" data-role="home">我的主页</span>
+                <span class="{$infoType != 1 ?'active' :''}" data-role="msg">消息中心</span>
+            </div>
+        </div>
+        {/if}
+    </div>
+    <!-- 文章、碎片  -->
+    <div class="data-title data-title-home" style="display: {$infoType == 1 ? 'block' : 'none';}">
+        <span class="active" data-role="article">
+            <a>文章</a>({$countArr["article"]})
+            <input type="hidden" name="num" value="{$countArr['article']}">
+        </span>
+        <span data-role="mood">
+            <a>碎片</a>({$countArr["fragment"]})
+            <input type="hidden" name="num" value="{$countArr['fragment']}">
+        </span>
+    </div>
+    <!-- 消息菜单  只有是当前用户且登陆才显示-->
+    {if condition="($user_info.user_id == $Think.session.user_id)"}
+    <div class="data-title data-title-msg" style="display: {$infoType != 1 ? 'block' : 'none';};">
+        <span data-role="comment" class="{$infoType == 34 ?'active' :''}">
+            <a>评论</a>({$countArr["comment"]})
+            <input type="hidden" name="num" value="{$countArr['comment']}">
+        </span>
+        <span data-role="like" class="{$infoType == 2 ?'active' :''}">
+            <a>喜欢</a>({$countArr["like"]})
+            <input type="hidden" name="num" value="{$countArr['like']}">
+        </span>
+        <span data-role="fans" class="{$infoType == 5 ?'active' :''}">
+            <a>粉丝</a>({$countArr['focusMsgCount']})
+            <input type="hidden" name="num" value="{$countArr['focusMsgCount']}">
+        </span>
+        <!-- <span data-role="privateMsg" class="{$infoType == 6 ?'active' :''}">
+            <a>私信</a>(0)
+            <input type="hidden" name="num" value="0">
+        </span> -->
+    </div>
+    {/if}
+    <!-- 查看粉丝与关注的菜单 -->
+    <div class="data-title data-title-like" style="display: none;">
+        <span><a>粉丝</a></span>
+        <span><a>关注</a></span>
+    </div>
+    <!-- 内容列表  -->
+    <div class="data-content">
+        <!-- 发布过的内容列表 -->
+        <div class="publish-list" style="display: {$infoType == 1 ? 'block' : 'none'};"></div>
+        <!-- 消息中心内容列表 -->
+        <div class="msg-list" style="display: {$infoType != 1 ? 'block' : 'none'};"></div>
+        <!-- 粉丝与关注 用户列表 -->
+        <div class="user-like-list"></div>
+        <div class="no-comment" style="display: none;">这里什么都没有~</div>
+        <div class="no-more-data" style="display: none;">-&nbsp;已加载全部&nbsp;-</div>
+        <div class="loading" style="display: none;"></div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+;
+(function($) {
+    var log_uid = "{$Think.session.user_id}", //当前登录用户
+        cur_uid = $("input[name='cur_user']").val(), //当前主页所属用户
+        followerNum = $("input[name='followerNum']").val(),
+        followingNum = $("input[name='followingNum']").val();
+
+    // 更新浏览量 非当前登录用户浏览 不需要判断是否登录 只有增加 
+    if (cur_uid != log_uid) {
+        $.ajax({
+            type: "POST",
+            url: "{:url('index/user_info/visit')}",
+            data: { "user_id": cur_uid }
+        });
+    }
+
+    /** getUserFocus 获取当前用户关注人和粉丝列表
+        @param total 数据总量 
+        @param type  获取数据的分类 取值有两个 follower(获取当前用户的粉丝) 和 following (获取当前用户关注的人)
+    */
+    function getUserFocus(total, type) {
+        var gPageSize = 6, //每次加载的数据量
+            i = 1, //设置当前页数，全局变量
+            pages = Math.ceil(total / gPageSize);
+
+        function getData() {
+
+            if (i > pages) {
+                $(".loading").hide();
+
+                if (pages == 0) {
+                    $(".no-comment").show();
+                } else {
+                    $(".no-more-data").show();
+                }
+                return false;
+            }
+
+            $.ajax({
+                type: "post",
+                url: "{:url('index/user_info/getUserFocus')}",
+                data: { "pageSize": gPageSize, "pageNum": i, "type": type, "user_id": cur_uid },
+                success: function(data) {
+                    if (data.length > 0) {
+                        insertUser(data, $(".user-like-list"));
+                    }
+                },
+                beforeSend: function() {
+                    $(".loading").show();
+                },
+                error: function() {
+                    $(".loading").hide();
+                }
+            });
+
+            i++;
+        }
+
+        getData();
+        tools.lazyLoad(getData());
+    }
+
+    /*  function getMyData 获取我发布过的 文章 碎片 评论 喜欢
+        @params total 内容总量
+        @params url 获取数据的url
+        @params callback 回调函数 用于插入不同类型的数据列表
+    */
+    function getMyData(total, url, callback) {
+        var gPageSize = 8, //每次加载的数据量
+            i = 1, //设置当前页数，全局变量
+            pages = Math.ceil(total / gPageSize);
+
+        function getData() {
+            if (i > pages) {
+                $(".loading").hide();
+
+                if (pages == 0) {
+                    $(".no-comment").show();
+                } else {
+                    $(".no-more-data").show();
+                }
+                return false;
+            }
+
+            $.ajax({
+                type: "post",
+                url: url,
+                data: { "pageSize": gPageSize, "pageNum": i, "user_id": cur_uid },
+                success: function(data) {
+                    if (data.length > 0) {
+                        if (callback instanceof Function) {
+                            callback(data, $(".publish-list"));
+                            $(".loading").hide();
+                        }
+                    }
+                },
+                beforeSend: function() {
+                    $(".loading").show();
+                },
+                error: function() {
+                    $(".loading").hide();
+                }
+            });
+
+            i++;
+        }
+
+        getData();
+        tools.lazyLoad(getData());
+    }
+
+    /*  function getMsg 获取评论回复、点赞、关注我的消息
+        @params total 内容总量
+        @params url 获取数据的url
+        @params callback 回调函数 用于插入不同类型的数据列表
+    */
+    function getMsg(total, url, callback) {
+        var gPageSize = 8, //每次加载的数据量
+            i = 1, //设置当前页数，全局变量
+            pages = Math.ceil(total / gPageSize);
+
+        function getData() {
+            if (i > pages) {
+                $(".loading").hide();
+
+                if (pages == 0) {
+                    $(".no-comment").show();
+                } else {
+                    $(".no-more-data").show();
+                }
+                return false;
+            }
+
+            $.ajax({
+                type: "post",
+                url: url,
+                data: { "pageSize": gPageSize, "pageNum": i, "user_id": cur_uid },
+                success: function(data) {
+                    if (data.length > 0) {
+                        if (callback instanceof Function) {
+                            callback(data, $(".msg-list"));
+                            $(".loading").hide();
+                        }
+                    }
+                },
+                beforeSend: function() {
+                    $(".loading").show();
+                },
+                error: function() {
+                    $(".loading").hide();
+                }
+            });
+
+            i++;
+        }
+
+        getData();
+        tools.lazyLoad(getData());
+    }
+
+    // 先显示文章列表
+    var num = $(".data-title-home span:first-child").find("input[name='num']").val();
+    getMyData(num, "{:url('index/user_info/getMyArticle')}", insertMyArticle);
+
+    // 关注-取消关注
+    $("body").on("click", ".btn-focus", function() {
+        var self = $(this),
+            be_followed_uid = self.siblings("input[name='be_followed_uid']").val();
+
+        if (!isLogin) { // 判断是否登录
+            toastr.error("请先登录");
+            return false;
+        }
+
+        if ($(this).hasClass("btn-focus-yes")) {
+            var isToFocus = false; //取消关注
+        } else if ($(this).hasClass("btn-focus-all")) {
+            var isToFocus = false; //取消关注
+        } else {
+            var isToFocus = true; //关注
+        }
+
+        $.ajax({
+            url: "{:url('index/user_info/focus')}",
+            method: "POST",
+            data: { "fan_uid": log_uid, "be_followed_uid": be_followed_uid, "isToFocus": isToFocus },
+            success: function(data) {
+                if (data.msg == "success") {
+                    self.hide();
+                    if (data.type == 0) {
+                        self.siblings(".btn-focus-no").css("display", "");
+                    }
+                    if (data.type == 1) {
+                        self.siblings(".btn-focus-yes").css("display", "");
+                    }
+                    if (data.type == 2) {
+                        self.siblings(".btn-focus-all").css("display", "");
+                    }
+                }
+            }
+        })
+    })
+
+    // 查看我的关注和粉丝用户列表
+    $(".user-others a").click(function() {
+        var role = $(this).data("role"); //按钮功能
+
+        $(this).addClass("active").siblings("a").removeClass("active");
+        $(".data-title-like").show().siblings(".data-title").hide();
+        $(".user-like-list").siblings("div").hide();
+        $(".user-like-list").show();
+        $(".user-like-list").html("");
+        $(".no-comment").hide();
+        $(".no-more-data").hide();
+
+
+        if (role == "follower") {
+            $(".data-title-like span:first-child").addClass("active").siblings().removeClass("active");
+            getUserFocus(followerNum, "getFollower");
+        }
+        if (role == "following") {
+            $(".data-title-like span:last-child").addClass("active").siblings().removeClass("active");
+            getUserFocus(followingNum, "getFollowing");
+        }
+
+    })
+    // 查看我的关注和粉丝用户列表
+    $(".data-title-like span").click(function() {
+        $(".user-like-list").show();
+        $(".user-like-list").html("");
+        $(".no-comment").hide();
+        $(".no-more-data").hide();
+
+        if ($(this).text() == "粉丝") {
+            getUserFocus(followerNum, "getFollower");
+        }
+        if ($(this).text() == "关注") {
+            getUserFocus(followingNum, "getFollowing");
+        }
+    })
+
+    // 菜单切换
+    $(".user-menu span").click(function() {
+        var role = $(this).data("role");
+
+        $(this).addClass("active").siblings("span").removeClass("active");
+
+        if ("home" == role) {
+            $(".data-title-home").css("display", "block").siblings(".data-title").hide();
+            $(".publish-list").siblings("div").hide();
+            $(".publish-list").show();
+            $(".publish-list").html("");
+            //先显示文章
+            var num = $(".data-title-home span:first-child").find("input[name='num']").val();
+            getMyData(num, "{:url('index/user_info/getMyArticle')}", insertMyArticle);
+        }
+        if ("msg" == role) {
+            $(".data-title-msg").css("display", "block").siblings(".data-title").hide();
+            $(".msg-list").siblings("div").hide();
+            $(".msg-list").show();
+            $(".no-more-data").hide();
+            $(".no-comment").hide();
+
+            //默认显示评论
+            var num = $(".data-title-msg span:first-child").find("input[name='num']").val();
+            getMsg(num, "{:url('index/user_info/getComment')}", insertCommentMe);
+        }
+    })
+
+    // 子菜单切换
+    $(".data-title span").click(function() {
+        $(this).addClass("active").siblings("span").removeClass("active");
+    })
+
+
+    // 获取我发布的文章、碎片列表  
+    $(".data-title-home  span").click(function() {
+        var role = $(this).data("role"),
+            num = $(this).find("input[name='num']").val();
+
+        $(".publish-list").html("");
+
+        //当点击我的主页的时候 首先要展示我的文章列表
+        if ("article" == role) { //查看我发布过的文章
+            getMyData(num, "{:url('index/user_info/getMyArticle')}", insertMyArticle);
+        }
+        if ("mood" == role) { //查看我发布过的心情
+            getMyData(num, "{:url('index/user_info/getMyMood')}", insertMyMood);
+        }
+        if ("comment" == role) { //评论我的
+            getMyData(num, "{:url('index/user_info/getMyComment')}", insertMyComment);
+        }
+        if ("like" == role) { //点赞我的
+            getMyData(num, "{:url('index/user_info/getMyLike')}", insertMyLike);
+        }
+        if ("fans" == role) { //点赞我的
+            getMyData(num, "{:url('index/user_info/getMyLike')}", insertMyFans);
+        }
+        if ("privateMsg" == role) { //点赞我的
+            getMyData(num, "{:url('index/user_info/getMyLike')}", insertPrivateMsg);
+        }
+    })
+    // 评论 喜欢 新增粉丝 私信
+    $(".data-title-msg  span").click(function() {
+        var role = $(this).data("role"),
+            num = $(this).find("input[name='num']").val();
+
+        $(".msg-list").html("");
+
+        if ("comment" == role) { //评论我的
+            getMsg(num, "{:url('index/user_info/getComment')}", insertCommentMe);
+        }
+        if ("like" == role) { //点赞我的
+            getMsg(num, "{:url('index/user_info/getLikeMsg')}", insertLikeMe);
+        }
+        if ("fans" == role) { //关注我的
+            getMsg(num, "{:url('index/user_info/getFocusMsg')}", insertFocusMe);
+        }
+        if ("privateMsg" == role) { //私信我的
+            getMsg(num, "{:url('index/user_info/getMsg')}", insertLetterMe);
+        }
+    })
+
+    //如果是点击消息通知按钮进来的 获取列表内容并将消息数量减少
+    if ("{$infoType}" == 2) {
+        getMsg(num, "{:url('index/user_info/getLikeMsg')}", insertLikeMe);
+        var action = "{$infoType}";
+
+        $.ajax({
+            url: "{:url('index/user_info/updateMsg')}",
+            method: "POST",
+            data: { "action": action, "obj_user_id": cur_uid },
+            success: function(data) {
+                if (data.msg == "success") {
+                    //页面中的消息气泡数量减少
+                    var total = parseInt($("#msg-count-list .msgnum").text());
+                    var now = total - parseInt(data.num);
+
+                    $("#msg-count-list .msgnum").text(now);
+                    $("#msg-count-list .like-msg-count").text(0);
+
+                }
+            }
+        })
+
+    }
+    if ("{$infoType}" == 34) {
+        getMsg(num, "{:url('index/user_info/getComment')}", insertCommentMe);
+        var action = "{$infoType}";
+
+        var action = "{$infoType}";
+
+        $.ajax({
+            url: "{:url('index/user_info/updateMsg')}",
+            method: "POST",
+            data: { "action": action, "obj_user_id": cur_uid },
+            success: function(data) {
+                if (data.msg == "success") {
+                    //页面中的消息气泡数量减少
+                    var total = parseInt($("#msg-count-list .msgnum").text());
+                    var now = total - parseInt(data.num);
+                    $("#msg-count-list .msgnum").text(now);
+
+                    $("#msg-count-list .comm-msg-count").text(0);
+                }
+            }
+        })
+    }
+    if ("{$infoType}" == 5) {
+        getMsg(num, "{:url('index/user_info/getFocusMsg')}", insertFocusMe);
+        var action = "{$infoType}";
+
+        var action = "{$infoType}";
+
+        $.ajax({
+            url: "{:url('index/user_info/updateMsg')}",
+            method: "POST",
+            data: { "action": action, "obj_user_id": cur_uid },
+            success: function(data) {
+                if (data.msg == "success") {
+                    //页面中的消息气泡数量减少
+                    var total = parseInt($("#msg-count-list .msgnum").text());
+                    var now = total - parseInt(data.num);
+                    $("#msg-count-list .msgnum").text(now);
+
+                    $("#msg-count-list .focus-msg-count").text(0);
+                }
+            }
+        })
+    }
+
+})(jQuery);
+</script>
+{/block}

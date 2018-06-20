@@ -1,0 +1,81 @@
+{extend name="base"/} {block name="title"}每日一句管理{/block} {block name="style"}{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li><a href="javascript:void(0)">每日一句管理</a></li>
+                            <li><span>新增</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- 新增一句 -->
+                    <form role="form" class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-md-2 control-label" for="description">内容：</label>
+                            <div class="col-md-8">
+                                <textarea spellcheck="false" class="form-control" placeholder="每日一句内容" rows="10" cols="20" name="content"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-md-2 control-label" for="description">显示时间：</label>
+                            <div class="col-md-8">
+                                <input type="text" required="" placeholder="必须为yyyy-mm-dd格式" class="form-control" name="show_time">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-offset-4 col-md-3">
+                                <button id="submit" type="submit" class="btn btn-info btn-block">提交</button>
+                            </div>
+                        </div>
+                    </form>
+                    <!-- 批量导入 -->
+                    <!-- <hr style="border-top: 1px dashed #ccc;">
+                    <div class="col-md-offset-2 col-md-2">
+                        <button id="batch" type="button" class="btn btn-info btn-block">批量导入</button>
+                    </div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+(function($) {
+
+    //新增一条数据
+    $("#submit").click(function(e) {
+        e.preventDefault();
+        var content = $("textarea[name='content']").val();
+        var show_time = $("input[name='show_time']").val();
+
+        if ($.trim(content).length <= 0 || $.trim(content).length > 140) {
+            toastr.error("内容不能为空,不能超过150个字");
+            return false;
+        }
+
+        $.ajax({
+            url: "{:url('admin/day/add_one')}",
+            type: "POST",
+            data: { "content": content, "show_time": show_time },
+            success: function(data) {
+                if (data.msg === "success") {
+                    toastr.success("添加成功");
+                    $("textarea[name='content']").val("");
+                    $("input[name='show_time']").val("");
+                } else {
+                    toastr.error(data.msg);
+                }
+            }
+        })
+    });
+
+    // 批量导入
+
+})(jQuery);
+</script>
+{/block}

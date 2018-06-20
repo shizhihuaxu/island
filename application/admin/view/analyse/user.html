@@ -1,0 +1,172 @@
+{extend name="base"/} {block name="title"}用户分析{/block} {block name="style"}{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li><a href="javascript:void(0)">统计分析</a></li>
+                            <li><span>用户分析</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- 用户分析 -->
+                    <div class="row">
+                        <div class="col-md-9">
+                            <!-- 用户登录时间分布 -->
+                            <div id="user_login" style="width: 100%;height:300px;"></div>
+                        </div>
+                         <div class="col-md-9">
+                            <!-- 用户在线时长统计 -->
+                            <div id="user_online" style="width: 100%;height:300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+// 用户登录时间按周分布
+var user_login_chart = echarts.init(document.getElementById('user_login'));
+var user_login_option = {
+    title: {
+        text: '用户登录时间按周分布情况'
+    },
+    tooltip: {
+        show: true
+    },
+    radar: [{
+        indicator: [
+            { text: '周一', max: 10 },
+            { text: '周二', max: 10 },
+            { text: '周三', max: 10 },
+            { text: '周四', max: 10 },
+            { text: '周五', max: 10 },
+            { text: '周六', max: 10 },
+            { text: '周日', max: 10 }
+        ],
+        center: ['50%', '50%'],
+        radius: 120,
+        startAngle: 90,
+        splitNumber: 4,
+        shape: 'circle',
+        name: {
+            formatter: '【{value}】',
+            textStyle: {
+                color: '#72ACD1'
+            }
+        },
+        splitArea: {
+            areaStyle: {
+                color: ['rgba(114, 172, 209, 0.2)',
+                    'rgba(114, 172, 209, 0.3)', 'rgba(114, 172, 209, 0.4)',
+                    'rgba(114, 172, 209, 0.5)', 'rgba(114, 172, 209, 0.6)',
+                    'rgba(114, 172, 209, 0.8)', 'rgba(114, 172, 209, 1)'
+                ],
+                shadowColor: 'rgba(0, 0, 0, 0.3)',
+                shadowBlur: 10
+            }
+        },
+        axisLine: {
+            lineStyle: {
+                color: 'rgba(255, 255, 255, 0.5)'
+            }
+        },
+        splitLine: {
+            lineStyle: {
+                color: 'rgba(255, 255, 255, 0.5)'
+            }
+        }
+    }],
+    series: [{
+        name: '雷达图',
+        type: 'radar',
+        itemStyle: {
+            emphasis: {
+                // color: 各异,
+                lineStyle: {
+                    width: 4
+                }
+            }
+        },
+        data: [{
+            value: [1, 2, 0, 0, 2, 1, 1],
+            name: '按周显示',
+            symbol: 'rect',
+            symbolSize: 5,
+            lineStyle: {
+                normal: {
+                    type: 'dashed'
+                }
+            }
+        }]
+    }]
+}
+
+user_login_chart.setOption(user_login_option);
+
+// 在线时长统计
+var user_online_chart = echarts.init(document.getElementById('user_online'));
+user_online_option = {
+     title: {
+        text: '用户在线时长情况'
+    },
+    color: ['#3398DB'],
+    toolbox: {
+        feature: {
+            dataZoom: {
+                yAxisIndex: 'none'
+            },
+            restore: {},
+            saveAsImage: {}
+        }
+    },
+    dataZoom: {
+        type: 'inside',
+        start: 0,
+        end: 100
+    },
+    tooltip : {
+        trigger: 'axis',
+        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+        }
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    xAxis : [
+        {
+            type : 'category',
+            data : ['10分钟以内', '10~20分钟', '20~30分钟', '30~40分钟', '40~50分钟', '50~60分钟', '大于60分钟'],
+            axisTick: {
+                alignWithLabel: true
+            }
+        }
+    ],
+    yAxis : [
+        {
+            type : 'value'
+        }
+    ],
+    series : [
+        {
+            name:'在线人数',
+            type:'bar',
+            barWidth: '60%',
+            data:{$online}
+        }
+    ]
+};
+user_online_chart.setOption(user_online_option);
+
+</script>
+{/block}

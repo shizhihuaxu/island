@@ -1,0 +1,57 @@
+<div class="col-xs-6 col-sm-3 sidebar-offcanvas" role="navigation">
+    <ul class="list-group panel">
+        <li class="list-group-item"><i class="glyphicon glyphicon-align-justify"></i> <b>导航菜单</b></li>
+        <li class="list-group-item"><a href="{:url('admin/index/index')}"><i class="glyphicon glyphicon-home"></i>首页 </a></li>
+        <li>
+            <a href="#daily" class="list-group-item " data-toggle="collapse">
+                <i class="glyphicon glyphicon-certificate"></i>每日一句管理
+                <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+            <li class="collapse" id="daily">
+                <a href="{:url('admin/day/index')}" class="list-group-item">显示全部</a>
+                <a href="{:url('admin/day/add')}" class="list-group-item">新增</a>
+            </li>
+        </li>
+        <li>
+            <a href="#demo4" class="list-group-item " data-toggle="collapse">
+                <i class="glyphicon glyphicon-list-alt"></i>标签管理
+                <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+            <li class="collapse" id="demo4">
+                <a href="{:url('admin/label/mood')}" class="list-group-item">碎片标签</a>
+                <a href="{:url('admin/label/read')}" class="list-group-item">文章标签</a>
+            </li>
+        </li>
+        <li>
+            <a href="#demo5" class="list-group-item " data-toggle="collapse">
+                <i class="glyphicon glyphicon-signal"></i>统计分析
+                <span class="glyphicon glyphicon-chevron-right"></span>
+            </a>
+            <li class="collapse" id="demo5">
+                <a href="{:url('admin/analyse/user')}" class="list-group-item">用户</a>
+                <a href="{:url('admin/analyse/publish')}" class="list-group-item">文章和碎片</a>
+            </li>
+        </li>
+        <li class="list-group-item">
+            <a href="{:url('admin/users/index')}">
+                <i class="glyphicon glyphicon-user"></i>用户管理
+            </a>
+        </li>
+         <li class="list-group-item">
+            <a href="{:url('admin/moods/index')}">
+                <i class="glyphicon glyphicon-pencil"></i>碎片管理
+            </a>
+        </li>
+         <li class="list-group-item">
+            <a href="{:url('admin/articles/index')}">
+                <i class="glyphicon glyphicon-book"></i>文章管理
+            </a>
+        </li>
+        <li class="list-group-item">
+            <a href="{:url('admin/admins/index')}">
+                <i class="glyphicon glyphicon-edit"></i>重置密码
+            </a>
+        </li>
+        <li class="list-group-item"><a href="{:url('admin/login/logout')}"><i class="glyphicon glyphicon-lock"></i>退出</a></li>
+    </ul>
+</div>

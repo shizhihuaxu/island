@@ -1,0 +1,136 @@
+{extend name="base"/} {block name="title"}每日一句列表{/block} {block name="style"}
+<style>
+table span {
+    color: #3BAFDA;
+    cursor: pointer;
+}
+</style>
+{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li><a href="javascript:void(0)">每日一句管理</a></li>
+                            <li><span>显示全部</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <!-- 标签列表 -->
+                    <div class="bs-example">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>内容</th>
+                                    <th>显示时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 标签列表结束 -->
+                    <!-- 分页 -->
+                    <div class="row content-row-pagination">
+                        <div class="col-md-6">
+                            共&nbsp;<span class="total"></span>&nbsp;条数据
+                        </div>
+                        <div class="col-md-offset-3 col-md-6">
+                            <ul class="pagination">
+                            </ul>
+                        </div>
+                    </div>
+                    <!--  -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+// 删除每日一句
+$('body').on('click', '.delete', function() {
+    let that = $(this);
+    let id = 0;
+    id = $(this).siblings('input').val();
+
+    $.ajax({
+        url: "{:url('admin/day/delete')}",
+        type: "POST",
+        data: { 'id': id },
+        success: function(data) {
+            if (data.msg === "success") {
+                toastr.success("删除成功");
+            } else {
+                toastr.error("删除失败");
+            }
+        }
+    })
+})
+// 分页
+
+getList(1);
+//获取列表
+function getList(page) {
+    if (typeof(page) == 'undefined') {
+        page = 1;
+    }
+
+    var htmlStr = '';
+    $('table tbody').html('');
+    $('.pagenation').html('');
+    //$('.show-gif').show();
+
+    //获取列表 
+    $.getJSON("{:url('admin/day/getList')}", { page: page }, function(data) {
+        if (typeof data == 'object') {
+            var list = data.list;
+
+            if (list.length) {
+                for (var i in list) {
+                    htmlStr += `<tr>`;
+
+                    if (i % 6 == 1) {
+                        htmlStr += `<tr class="active">`;
+                    }
+                    if (i % 6 == 3) {
+                        htmlStr += `<tr class="success">`;
+                    }
+                    if (i % 6 == 5) {
+                        htmlStr += `<tr class="info">`;
+                    }
+
+                    htmlStr += `<td>${parseInt(i)+1}</td>
+                                    <td>${list[i].content}</td>
+                                    <td>${list[i].show_time}</td>                              
+                                    <td>
+                                        <input type="hidden" value="${list[i].id}" />
+                                        <a href="../day/edit/${list[i].id}">编辑</a></span>|<span class="delete">删除</span>
+                                    </td>
+                                </tr>`;
+                }
+
+                //分页             
+                var htmlTmp = pageHtml(data.count, page);
+                $(".total").text(data.count);
+                if (htmlTmp) {
+                    $('.pagination').html(htmlTmp);
+                }
+            } else {
+                htmlStr += '<p align="center">暂时还没有数据。</p>';
+            }
+        }
+        //$('.show-gif').hide();
+        $("table tbody").html(htmlStr);
+    })
+
+
+}
+</script>
+{/block}

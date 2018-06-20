@@ -1,0 +1,86 @@
+{extend name="base"/} {block name="title"}发布数据统计{/block} {block name="style"}{/block} {block name="content"}
+<div class="container-fluid">
+    <div class="row row-offcanvas row-offcanvas-left">
+        {include file='/common/sidebar'}
+        <div class="col-xs-12 col-sm-9 content">
+            <div class="panel panel-default">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ol class="breadcrumb breadcrumb-arrow">
+                            <li class="active"><span>发布数据统计</span></li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <!-- 用户登录时间分布 -->
+                            <div id="publish" style="width: 100%;height:300px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{/block} {block name="jsFunc"}
+<script type="text/javascript">
+// 近一周内发布内容情况
+var publish_chart = echarts.init(document.getElementById('publish'));
+option = {
+    title: {
+        text: '近7天内发布内容情况'
+    },
+    tooltip: {
+        trigger: 'axis'
+    },
+    legend: {
+        data:['碎片','文章']
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+    },
+    toolbox: {
+       feature: {
+            dataZoom: {
+                yAxisIndex: 'none'
+            },
+            restore: {},
+            saveAsImage: {}
+        }
+    },
+    dataZoom: {
+        type: 'inside',
+        start: 0,
+        end: 100
+    },
+    xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: ['1','2','3','4','5','6','7']
+    },
+    yAxis: {
+        type: 'value'
+    },
+    series: [
+        {
+            name:'碎片',
+            type:'line',
+            stack: '总量',
+            data:{$mood}
+        },
+        {
+            name:'文章',
+            type:'line',
+            stack: '总量',
+            data:{$article}
+        }     
+    ]
+};
+
+publish_chart.setOption(option);
+</script>
+{/block}
